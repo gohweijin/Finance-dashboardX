@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Finance">
+<meta name="theme-color" content="#ffffff">
+<title>Family Finance Dashboard</title>
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f5f5f4; --bg3: #e8e6e1;
+  --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b97;
+  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.2);
+  --green: #1D9E75; --blue: #378ADD; --red: #E24B4A;
+  --amber: #BA7517; --purple: #7F77DD; --teal: #185FA5;
+  --radius: 10px; --radius-sm: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1c1e; --bg2: #2c2c2e; --bg3: #3a3a3c;
+    --text: #f2f2f7; --text2: #aeaeb2; --text3: #636366;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; padding-bottom: 90px; }
+.header { background: var(--bg); padding: 16px 16px 12px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; }
+.header-top { display: flex; justify-content: space-between; align-items: center; }
+.header-title { font-size: 11px; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+.header-main { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+.month-nav { display: flex; gap: 6px; }
+.month-btn { background: var(--bg2); border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 16px; color: var(--text2); cursor: pointer; }
+/* Bottom tab bar */
+.tabbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 200; }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0; cursor: pointer; border: none; background: none; color: var(--text3); font-size: 10px; letter-spacing: 0.03em; }
+.tab-item.active { color: var(--blue); }
+.tab-icon { font-size: 22px; line-height: 1; }
+/* Panels */
+.panel { display: none; padding: 14px 14px 0; }
+.panel.active { display: block; }
+/* Stats grid */
+.sg4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.sg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.stat { background: var(--bg); border-radius: var(--radius); padding: 12px 14px; }
+.stat-label { font-size: 10px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
+.stat-value { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
+.stat-value.pos { color: var(--green); } .stat-value.neg { color: var(--red); }
+.stat-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+/* Cards */
+.card { background: var(--bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.card-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+.card-sub { font-size: 11px; font-weight: 400; color: var(--text2); margin-left: 6px; }
+/* Form fields */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 10px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
+.field input, .field select { font-size: 14px; font-family: inherit; padding: 9px 10px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); -webkit-appearance: none; width: 100%; }
+.field input:focus, .field select:focus { outline: 2px solid var(--blue); border-color: transparent; }
+.btn-primary { width: 100%; margin-top: 10px; padding: 12px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; }
+.btn-primary:active { opacity: 0.85; }
+/* Upload */
+.upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 10px; cursor: pointer; }
+.upload-zone:active { background: var(--bg2); }
+.upload-label { font-size: 13px; color: var(--text2); }
+.upload-label span { color: var(--blue); font-weight: 500; }
+.upload-status { font-size: 12px; margin-top: 4px; min-height: 16px; }
+.upload-status.processing { color: var(--amber); }
+.upload-status.done { color: var(--green); }
+.upload-status.error { color: var(--red); }
+/* Ledger */
+.ledger-item { background: var(--bg); border-radius: var(--radius); margin-bottom: 6px; padding: 12px 14px; }
+.ledger-item.on-behalf { opacity: 0.5; }
+.ledger-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.ledger-desc { font-size: 13px; font-weight: 500; flex: 1; margin-right: 8px; }
+.ledger-amount { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ledger-row2 { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.ledger-meta { font-size: 10px; color: var(--text2); }
+.ledger-row3 { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
+.inline-sel { font-size: 12px; padding: 4px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); flex: 1; }
+.del-btn { padding: 4px 10px; background: none; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--red); font-size: 12px; cursor: pointer; }
+/* Pills */
+.pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; white-space: nowrap; font-weight: 500; }
+.who-me { background: #dbeafe; color: #1e40af; }
+.who-him { background: #dcfce7; color: #166534; }
+.who-joint { background: var(--bg2); color: var(--text2); }
+.cash-pill { background: #fef3c7; color: #92400e; }
+.behalf-pill { background: #ffedd5; color: #9a3412; }
+.day-sun { color: var(--red); font-weight: 600; }
+.day-wed { color: var(--green); font-weight: 600; }
+/* Category bars */
+.cat-bar-wrap { margin-bottom: 10px; }
+.cat-bar-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.cat-bar-name { font-size: 12px; color: var(--text); }
+.cat-bar-amt { font-size: 12px; color: var(--text2); font-variant-numeric: tabular-nums; }
+.cat-bar-track { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+/* CPF */
+.cpf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.cpf-field { background: var(--bg2); border-radius: var(--radius-sm); padding: 10px; }
+.cpf-field label { font-size: 10px; color: var(--text2); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.cpf-input { font-size: 14px; font-weight: 600; background: transparent; border: none; border-bottom: 1px solid var(--border2); width: 100%; color: var(--text); padding: 2px 0; outline: none; font-variant-numeric: tabular-nums; }
+.cpf-rate { font-size: 9px; color: var(--text3); margin-top: 3px; }
+.cpf-total { font-size: 11px; color: var(--text2); text-align: right; margin-top: 4px; }
+/* NW bar */
+.nw-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin: 8px 0 14px; }
+.nw-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+/* Asset/liability rows */
+.list-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.list-row:last-child { border-bottom: none; }
+.list-name { font-size: 13px; }
+.list-amt { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+/* Filters */
+.filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-scroll select { font-size: 12px; padding: 6px 10px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); white-space: nowrap; flex-shrink: 0; }
+.filter-scroll input { font-size: 12px; padding: 6px 10px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); width: 120px; flex-shrink: 0; }
+.sl { font-size: 11px; color: var(--text2); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; margin-top: 4px; }
+.hint { font-size: 11px; color: var(--text2); background: var(--bg2); border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 6px; line-height: 1.5; }
+@media (prefers-color-scheme: dark) {
+  .who-me { background: #1e3a5f; color: #93c5fd; }
+  .who-him { background: #14532d; color: #86efac; }
+  .cash-pill { background: #451a03; color: #fcd34d; }
+  .behalf-pill { background: #431407; color: #fdba74; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">Family finance</div>
+      <div class="header-main" id="headerMonth"></div>
+    </div>
+    <div class="month-nav">
+      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+      <button class="month-btn" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANELS -->
+<div id="panel-cashflow" class="panel active">
+  <div style="height:10px"></div>
+  <div class="sg4">
+    <div class="stat"><div class="stat-label">Income</div><div class="stat-value pos" id="cfIncome">S$0</div></div>
+    <div class="stat"><div class="stat-label">Expenses</div><div class="stat-value" id="cfExpenses">S$0</div></div>
+    <div class="stat"><div class="stat-label">On behalf</div><div class="stat-value" id="cfOnBehalf" style="color:var(--text2)">S$0</div></div>
+    <div class="stat"><div class="stat-label">Savings</div><div class="stat-value" id="cfSavings">S$0</div><div class="stat-sub" id="cfRate"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Monthly income</div>
+    <div class="form-grid">
+      <div class="field"><label>Your income (S$)</label><input type="number" id="myIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
+      <div class="field"><label>Husband's income</label><input type="number" id="hisIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
+      <div class="field" style="grid-column:span 2"><label>Other income (S$)</label><input type="number" id="otherIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
+    </div>
+  </div>
+
+  <div class="sl">Upload statement</div>
+  <div class="upload-zone" onclick="document.getElementById('fileMe').click()">
+    <input type="file" id="fileMe" accept=".pdf,.csv,.txt" style="display:none" onchange="handleUpload(event,'me')">
+    <div class="upload-label">Your statement — <span>tap to browse</span></div>
+    <div class="upload-label" style="font-size:11px;margin-top:2px">PDF, CSV or TXT</div>
+    <div class="upload-status" id="statusMe"></div>
+  </div>
+  <div class="upload-zone" onclick="document.getElementById('fileHim').click()">
+    <input type="file" id="fileHim" accept=".pdf,.csv,.txt" style="display:none" onchange="handleUpload(event,'him')">
+    <div class="upload-label">Husband's statement — <span>tap to browse</span></div>
+    <div class="upload-status" id="statusHim"></div>
+  </div>
+
+  <div class="sl" style="margin-top:4px">Add expense</div>
+  <div class="card">
+    <div class="card-title">Manual entry <span class="card-sub">cash, PayNow, GIRO</span></div>
+    <div class="form-grid">
+      <div class="field" style="grid-column:span 2"><label>Description</label><input type="text" id="expDesc" placeholder="e.g. Ironing clothes"></div>
+      <div class="field"><label>Amount (S$)</label><input type="number" id="expAmount" placeholder="0.00" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label>Payment</label>
+        <select id="expPayment">
+          <option value="card">Card</option><option value="cash">Cash</option>
+          <option value="paynow">PayNow</option><option value="giro">GIRO</option>
+          <option value="bank_transfer">Bank transfer</option>
+        </select>
+      </div>
+      <div class="field"><label>Txn date</label><input type="date" id="expDate"></div>
+      <div class="field"><label>Stmt / pay date</label><input type="date" id="expStmtDate"></div>
+      <div class="field"><label>Category</label><select id="expCat"></select></div>
+      <div class="field"><label>Who</label>
+        <select id="expWho"><option value="joint">Joint</option><option value="me">Mine</option><option value="him">Husband</option></select>
+      </div>
+      <div class="field" style="grid-column:span 2"><label>On behalf</label>
+        <select id="expBehalf"><option value="no">No — counts as expense</option><option value="yes">Yes — tracked but excluded</option></select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="addExpense()">Add expense</button>
+    <div class="hint">Cash transactions (ironing, hawker, etc.) won't appear in card statements — add them here. They count toward expenses normally.</div>
+  </div>
+</div>
+
+<div id="panel-categories" class="panel">
+  <div style="height:10px"></div>
+  <div class="hint" style="margin-bottom:10px">Excludes on-behalf transactions</div>
+  <div class="sg4" id="catTopStats"></div>
+  <div class="card" id="catBarsCard"><div id="catBars"></div></div>
+</div>
+
+<div id="panel-ledger" class="panel">
+  <div style="height:10px"></div>
+  <div class="filter-scroll">
+    <select id="filterMonth" onchange="renderLedger()"></select>
+    <select id="filterWho" onchange="renderLedger()">
+      <option value="">All</option><option value="me">Mine</option><option value="him">Husband</option><option value="joint">Joint</option>
+    </select>
+    <select id="filterCat" onchange="renderLedger()"></select>
+    <select id="filterBehalf" onchange="renderLedger()">
+      <option value="">All</option><option value="no">Excl. on behalf</option><option value="yes">On behalf only</option>
+    </select>
+    <input type="text" id="filterSearch" placeholder="Search..." oninput="renderLedger()">
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+    <span style="font-size:12px;color:var(--text2)" id="ledgerCount"></span>
+    <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums" id="ledgerTotal"></span>
+  </div>
+  <div id="ledgerList"></div>
+</div>
+
+<div id="panel-networth" class="panel">
+  <div style="height:10px"></div>
+  <div class="sg4">
+    <div class="stat"><div class="stat-label">Assets</div><div class="stat-value pos" id="nwAssets">S$0</div></div>
+    <div class="stat"><div class="stat-label">Liabilities</div><div class="stat-value neg" id="nwLiabilities">S$0</div></div>
+    <div class="stat" style="grid-column:span 2"><div class="stat-label">Net worth</div><div class="stat-value" id="nwNet">S$0</div></div>
+  </div>
+  <div class="nw-bar"><div class="nw-fill" id="nwBar" style="width:0%"></div></div>
+
+  <div class="sl">Your CPF <span style="font-size:10px;font-weight:400">OA 2.5% · SA/MA 4%</span></div>
+  <div class="card">
+    <div class="cpf-grid">
+      <div class="cpf-field"><label>OA</label><input class="cpf-input" type="number" inputmode="decimal" id="myOA" oninput="updateNW()"><div class="cpf-rate">Housing · Education</div></div>
+      <div class="cpf-field"><label>SA</label><input class="cpf-input" type="number" inputmode="decimal" id="mySA" oninput="updateNW()"><div class="cpf-rate">Retirement</div></div>
+      <div class="cpf-field"><label>MA</label><input class="cpf-input" type="number" inputmode="decimal" id="myMA" oninput="updateNW()"><div class="cpf-rate">MediShield</div></div>
+      <div class="cpf-field"><label>CPFIS</label><input class="cpf-input" type="number" inputmode="decimal" id="myCPFIS" oninput="updateNW()"><div class="cpf-rate">Investments</div></div>
+    </div>
+    <div class="cpf-total">Total: <strong id="myCPFTotal">S$0</strong></div>
+  </div>
+
+  <div class="sl">Husband's CPF</div>
+  <div class="card">
+    <div class="cpf-grid">
+      <div class="cpf-field"><label>OA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisOA" oninput="updateNW()"><div class="cpf-rate">Housing · Education</div></div>
+      <div class="cpf-field"><label>SA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisSA" oninput="updateNW()"><div class="cpf-rate">Retirement</div></div>
+      <div class="cpf-field"><label>MA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisMA" oninput="updateNW()"><div class="cpf-rate">MediShield</div></div>
+      <div class="cpf-field"><label>CPFIS</label><input class="cpf-input" type="number" inputmode="decimal" id="hisCPFIS" oninput="updateNW()"><div class="cpf-rate">Investments</div></div>
+    </div>
+    <div class="cpf-total">Total: <strong id="hisCPFTotal">S$0</strong></div>
+  </div>
+
+  <div class="sl">Other assets</div>
+  <div class="card">
+    <div id="assetList"></div>
+    <div class="form-grid" style="margin-top:10px">
+      <div class="field"><label>Asset name</label><input type="text" id="assetName" placeholder="e.g. HDB flat"></div>
+      <div class="field"><label>Value (S$)</label><input type="number" id="assetValue" placeholder="0" inputmode="decimal"></div>
+    </div>
+    <button class="btn-primary" onclick="addAsset()">Add asset</button>
+  </div>
+
+  <div class="sl">Liabilities</div>
+  <div class="card">
+    <div id="liabilityList"></div>
+    <div class="form-grid" style="margin-top:10px">
+      <div class="field"><label>Liability name</label><input type="text" id="liabilityName" placeholder="e.g. HDB loan"></div>
+      <div class="field"><label>Amount (S$)</label><input type="number" id="liabilityValue" placeholder="0" inputmode="decimal"></div>
+    </div>
+    <button class="btn-primary" onclick="addLiability()">Add liability</button>
+  </div>
+</div>
+
+<!-- BOTTOM TAB BAR -->
+<nav class="tabbar">
+  <button class="tab-item active" onclick="switchTab('cashflow',this)">
+    <span class="tab-icon">💰</span>Cash Flow
+  </button>
+  <button class="tab-item" onclick="switchTab('categories',this)">
+    <span class="tab-icon">📊</span>Categories
+  </button>
+  <button class="tab-item" onclick="switchTab('ledger',this)">
+    <span class="tab-icon">📋</span>Ledger
+  </button>
+  <button class="tab-item" onclick="switchTab('networth',this)">
+    <span class="tab-icon">🏦</span>Net Worth
+  </button>
+</nav>
+
+<script>
+const CATS=[
+  {id:'food',name:'Food & Dining',color:'#1D9E75'},
+  {id:'groceries',name:'Groceries',color:'#378ADD'},
+  {id:'transport',name:'Transport',color:'#BA7517'},
+  {id:'shopping',name:'Shopping',color:'#D4537E'},
+  {id:'health',name:'Health',color:'#7F77DD'},
+  {id:'entertainment',name:'Entertainment',color:'#D85A30'},
+  {id:'insurance',name:'Insurance',color:'#639922'},
+  {id:'travel',name:'Travel',color:'#185FA5'},
+  {id:'education',name:'Education',color:'#993556'},
+  {id:'car',name:'Car loan',color:'#5F5E5A'},
+  {id:'household',name:'Household',color:'#0F6E56'},
+  {id:'fees',name:'Fees & Charges',color:'#888780'},
+  {id:'other',name:'Other',color:'#B4B2A9'},
+];
+function catById(id){return CATS.find(c=>c.id===id)||CATS[CATS.length-1];}
+function getDOW(s){if(!s)return -1;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).getDay();}
+function dayName(s){const n=getDOW(s);return n<0?'':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n];}
+function isSun(s){return getDOW(s)===0;}
+function isWed(s){return getDOW(s)===3;}
+function isChinaTrip(d){return /beijing|shanghai|shenzhen|china|cny|alp\*|didi|meituan|weixin|tianlun|dongheng|guangxi|voyagecoffee/i.test(d||'');}
+function fmt(n){return'S$'+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtD(n){return'S$'+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtDate(s){return s?s.slice(5).replace('-','/'):'—';}
+
+const AMOUNTS={p01:877.96,p02:161.45,p03:2.66,p04:6.53,p05:2.85,p06:20.87,p07:228.25,p08:596.32,p09:10.91,p10:14.97,p11:66.17,p12:20.28,p13:37.72,p14:5.83,p15:34.17,p16:120.63,p17:9.27,p18:12.50,p19:15.42,p20:51.14,p21:12.47,p22:15.61,p23:112.23,p24:1.88,p25:33.75,p26:249.66,p27:132.34,p28:1216.51,p29:360.63,p30:594.76,p31:186.42,p32:5.41,p33:10.00,p34:10.60,p35:16.20,p36:6.40,p37:7.40,p38:11.00,p39:35.10,p40:14.40,p41:6.00,p42:130.80,p43:9.50,p44:106.46,p45:69.48,p46:50.00,p47:31.70,p48:6.20,p49:18.90,p50:48.10,p51:39.83,p52:47.20,p53:10.80,p54:25.00,p55:120.98,p56:23.20,p57:10.55,p58:145.08,p59:5.50,p60:6.00,p61:20.92,p62:100.00,p63:43.60,p64:140.25,p65:102.02,p66:3.54,p67:13.50,p68:13.50,p69:13.50,p70:13.50,p71:13.50};
+const PL=[
+  {id:'p01',desc:'SP Daylight Co.',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p02',desc:'SP Fatskn Calgary',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p03',desc:'Didi Taxi Beijing',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p04',desc:'Tous Les Jours Shanghai',stmtDate:'2026-01-13',txnDate:'2025-11-26',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p05',desc:'Guangxi Shouzu Xing',stmtDate:'2026-01-13',txnDate:'2025-11-27',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p06',desc:'CR Vanguard Hua Run Shanghai',stmtDate:'2026-01-13',txnDate:'2025-11-28',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p07',desc:'Beijing Tianlun Hotel',stmtDate:'2026-01-13',txnDate:'2025-11-29',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p08',desc:'Dongheng Beijing Hotel',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p09',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p10',desc:'Uniqlo Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p11',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p12',desc:'Weixin Scan QR Shenzhen',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p13',desc:'Beijingdian Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p14',desc:'Didi Taxi Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p15',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p16',desc:'ALP Bakeries Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p17',desc:'Meituan Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p18',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p19',desc:'Meituan Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p20',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p21',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p22',desc:'Didi Taxi Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p23',desc:'Haidilao Hot Pot Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p24',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p25',desc:'Voyage Coffee Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-03',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p26',desc:'CardUp - Liberty Insurance',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'insurance',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p27',desc:'CardUp - HSBC Life Insurance',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'joint',cat:'insurance',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p28',desc:'CardUp - HL Bank (Car loan)',stmtDate:'2026-01-13',txnDate:'2025-12-12',who:'joint',cat:'car',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p29',desc:'CardUp - Distinct Creati (Tuition)',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p30',desc:'CardUp - Playfacto@Ubi',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p31',desc:'CardUp - Playfacto@Ubi',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p32',desc:'Finest Paya Lebar Quarter',stmtDate:'2026-01-13',txnDate:'2025-11-21',who:'joint',cat:'groceries',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p33',desc:'Four Leaves Bishan',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
+  {id:'p34',desc:'Guardian Junction 8',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p35',desc:'BreadTalk IHQ',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p36',desc:'Four Leaves Parkway',stmtDate:'2026-01-13',txnDate:'2025-12-08',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p37',desc:'Shopback GO',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p38',desc:'Lavender Jewel',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p39',desc:'Muji Parkway Parade',stmtDate:'2026-01-13',txnDate:'2025-12-13',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p40',desc:'So Good Bakery Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p41',desc:'Guardian I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p42',desc:'Ubi Dental Clinic',stmtDate:'2026-01-13',txnDate:'2025-12-18',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p43',desc:'GV Plaza Singapura',stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p44',desc:"Toys'R'Us Parkway",stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p45',desc:"Toys'R'Us Parkway",stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p46',desc:'Popular Book J8',stmtDate:'2026-01-13',txnDate:'2025-12-21',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p47',desc:'H&M Singapore',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p48',desc:'ACX Foodcourt',stmtDate:'2026-01-13',txnDate:'2025-11-24',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p49',desc:'ACX Foodcourt',stmtDate:'2026-01-13',txnDate:'2025-11-24',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p50',desc:'Trip.com',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p51',desc:'Trip.com',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p52',desc:'FR IHQ First Street',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p53',desc:'FR IHQ Stall 09',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p54',desc:'UOB KrisFlyer Conversion Fee',stmtDate:'2026-01-13',txnDate:'2025-12-05',who:'joint',cat:'fees',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p55',desc:'Song Fa NPC',stmtDate:'2026-01-13',txnDate:'2025-12-07',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
+  {id:'p56',desc:'Guzman y Gomez',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p57',desc:"McDonald's",stmtDate:'2026-01-13',txnDate:'2025-12-11',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p58',desc:'Omote Thomson Plaza',stmtDate:'2026-01-13',txnDate:'2025-12-14',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
+  {id:'p59',desc:'SG Hawker I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p60',desc:'SG Hawker I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p61',desc:'HK150 Connoisseur',stmtDate:'2026-01-13',txnDate:'2025-12-18',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p62',desc:'Sen-Ryo ION',stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p63',desc:'HK150 Connoisseur',stmtDate:'2026-01-13',txnDate:'2025-12-20',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p64',desc:'Boon Tong Kee AMK',stmtDate:'2026-01-13',txnDate:'2025-12-21',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
+  {id:'p65',desc:'Bedrock Bar & Grill',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p66',desc:'Bus/MRT',stmtDate:'2026-01-13',txnDate:'2025-11-19',who:'me',cat:'transport',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p67',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p68',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p69',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p70',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'p71',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
+  {id:'cash01',desc:'Ironing service',stmtDate:'2026-01-01',txnDate:'2026-01-01',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
+  {id:'cash02',desc:'Ironing service',stmtDate:'2026-01-08',txnDate:'2026-01-08',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
+  {id:'cash03',desc:'Ironing service',stmtDate:'2026-01-15',txnDate:'2026-01-15',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
+  {id:'cash04',desc:'Ironing service',stmtDate:'2026-01-22',txnDate:'2026-01-22',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
+];
+PL.forEach(e=>{if(!e.amount&&AMOUNTS[e.id])e.amount=AMOUNTS[e.id];});
+
+function loadState(){try{const s=localStorage.getItem('sgpwa_state');if(s)return JSON.parse(s);}catch(e){}return null;}
+let state=loadState()||{
+  expenses:PL,income:{'2026-01':{me:0,him:0,other:0}},assets:[],liabilities:[],
+  cpf:{myOA:138553.94,mySA:131651.13,myMA:79000,myCPFIS:0,hisOA:148462.25,hisSA:174413,hisMA:79000,hisCPFIS:0}
+};
+let currentMonth='2026-01';
+if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
+function saveState(){try{localStorage.setItem('sgpwa_state',JSON.stringify(state));}catch(e){}}
+function expMonth(e){return(e.stmtDate||e.txnDate||'').slice(0,7);}
+function getMonthExp(){return state.expenses.filter(e=>expMonth(e)===currentMonth);}
+
+function switchTab(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='categories')renderCategories();
+  if(name==='ledger'){populateLedgerFilters();renderLedger();}
+  if(name==='networth')renderNetWorth();
+  window.scrollTo(0,0);
+}
+
+function changeMonth(dir){
+  const[y,m]=currentMonth.split('-').map(Number);
+  const d=new Date(y,m-1+dir,1);
+  currentMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
+  renderCashFlow();
+  const cp=document.querySelector('.panel.active');
+  if(cp&&cp.id==='panel-categories')renderCategories();
+}
+
+function updateIncome(){
+  if(!state.income[currentMonth])state.income[currentMonth]={};
+  state.income[currentMonth].me=parseFloat(document.getElementById('myIncome').value)||0;
+  state.income[currentMonth].him=parseFloat(document.getElementById('hisIncome').value)||0;
+  state.income[currentMonth].other=parseFloat(document.getElementById('otherIncome').value)||0;
+  saveState();renderCashFlow();
+}
+
+function renderCashFlow(){
+  const[y,m]=currentMonth.split('-');
+  document.getElementById('headerMonth').textContent=new Date(+y,+m-1,1).toLocaleDateString('en-SG',{month:'long',year:'numeric'});
+  const inc=state.income[currentMonth]||{};
+  document.getElementById('myIncome').value=inc.me||'';
+  document.getElementById('hisIncome').value=inc.him||'';
+  document.getElementById('otherIncome').value=inc.other||'';
+  const totalInc=(inc.me||0)+(inc.him||0)+(inc.other||0);
+  const all=getMonthExp();
+  const realExp=all.filter(e=>e.behalf!=='yes').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const bAmt=all.filter(e=>e.behalf==='yes').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const sav=totalInc-realExp;
+  const rate=totalInc>0?Math.round((sav/totalInc)*100):null;
+  document.getElementById('cfIncome').textContent=fmt(totalInc);
+  document.getElementById('cfExpenses').textContent=fmtD(realExp);
+  document.getElementById('cfOnBehalf').textContent=fmtD(bAmt);
+  const se=document.getElementById('cfSavings');
+  se.textContent=(sav<0?'-':'')+fmtD(Math.abs(sav));
+  se.className='stat-value '+(sav<0?'neg':'pos');
+  document.getElementById('cfRate').textContent=rate!==null?rate+'% savings rate':'';
+}
+
+function renderCategories(){
+  const[y,m]=currentMonth.split('-');
+  const exps=getMonthExp().filter(e=>e.behalf!=='yes');
+  const total=exps.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  const bycat={};exps.forEach(e=>{bycat[e.cat]=(bycat[e.cat]||0)+(parseFloat(e.amount)||0);});
+  const sorted=CATS.map(c=>({...c,amt:bycat[c.id]||0})).filter(c=>c.amt>0).sort((a,b)=>b.amt-a.amt);
+  document.getElementById('catTopStats').innerHTML=sorted.slice(0,4).map(c=>`
+    <div class="stat">
+      <div class="stat-label">${c.name}</div>
+      <div class="stat-value" style="font-size:15px">${fmtD(c.amt)}</div>
+      <div class="stat-sub">${total>0?Math.round((c.amt/total)*100):0}%</div>
+    </div>`).join('');
+  const max=sorted[0]?.amt||1;
+  document.getElementById('catBars').innerHTML=sorted.length?sorted.map(c=>`
+    <div class="cat-bar-wrap">
+      <div class="cat-bar-top"><span class="cat-bar-name">${c.name}</span><span class="cat-bar-amt">${fmtD(c.amt)} · ${total>0?Math.round((c.amt/total)*100):0}%</span></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${Math.round((c.amt/max)*100)}%;background:${c.color}"></div></div>
+    </div>`).join(''):'<p style="color:var(--text2);text-align:center;padding:20px">No expenses this month.</p>';
+}
+
+function populateLedgerFilters(){
+  const months=[...new Set(state.expenses.map(e=>expMonth(e)).filter(Boolean))].sort().reverse();
+  document.getElementById('filterMonth').innerHTML='<option value="">All months</option>'+months.map(mo=>{
+    const[y,m]=mo.split('-');
+    return`<option value="${mo}"${mo===currentMonth?' selected':''}>${new Date(+y,+m-1,1).toLocaleDateString('en-SG',{month:'short',year:'numeric'})}</option>`;
+  }).join('');
+  document.getElementById('filterCat').innerHTML='<option value="">All cats</option>'+CATS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function updateWho(id,val){const e=state.expenses.find(x=>x.id===id);if(!e)return;e.who=val;saveState();renderCashFlow();}
+function updateBehalf(id,val){const e=state.expenses.find(x=>x.id===id);if(!e)return;e.behalf=val;saveState();renderCashFlow();renderLedger();}
+
+function renderLedger(){
+  const fM=document.getElementById('filterMonth').value;
+  const fW=document.getElementById('filterWho').value;
+  const fC=document.getElementById('filterCat').value;
+  const fB=document.getElementById('filterBehalf').value;
+  const fS=(document.getElementById('filterSearch').value||'').toLowerCase();
+  const exps=state.expenses.filter(e=>{
+    if(fM&&expMonth(e)!==fM)return false;
+    if(fW&&e.who!==fW)return false;
+    if(fC&&e.cat!==fC)return false;
+    if(fB&&e.behalf!==fB)return false;
+    if(fS&&!(e.desc||'').toLowerCase().includes(fS))return false;
+    return true;
+  }).sort((a,b)=>(b.txnDate||'').localeCompare(a.txnDate||''));
+  const total=exps.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  document.getElementById('ledgerCount').textContent=exps.length+' transaction'+(exps.length!==1?'s':'');
+  document.getElementById('ledgerTotal').textContent=fmtD(total);
+  const list=document.getElementById('ledgerList');
+  if(!exps.length){list.innerHTML='<p style="color:var(--text2);text-align:center;padding:30px">No transactions match.</p>';return;}
+  const c=catById;
+  list.innerHTML=exps.map(e=>{
+    const cat=c(e.cat);
+    const day=dayName(e.txnDate);
+    const dow=getDOW(e.txnDate);
+    const dayCls=dow===0?'day-sun':dow===3?'day-wed':'';
+    const isBehalf=e.behalf==='yes';
+    const isCash=e.payment==='cash';
+    const whoCls=e.who==='me'?'who-me':e.who==='him'?'who-him':'who-joint';
+    const whoLabel=e.who==='me'?'Mine':e.who==='him'?'Husband':'Joint';
+    return`<div class="ledger-item${isBehalf?' on-behalf':''}">
+      <div class="ledger-row1">
+        <div class="ledger-desc">${e.desc}</div>
+        <div class="ledger-amount" style="${isBehalf?'color:var(--text2)':''}">${fmtD(parseFloat(e.amount)||0)}</div>
+      </div>
+      <div class="ledger-row2">
+        <span class="pill" style="background:${cat.color}22;color:${cat.color}">${cat.name}</span>
+        <span class="pill ${whoCls}">${whoLabel}</span>
+        ${isBehalf?'<span class="pill behalf-pill">on behalf</span>':''}
+        ${isCash?'<span class="pill cash-pill">cash</span>':''}
+        <span class="ledger-meta">Txn: ${fmtDate(e.txnDate)} <span class="${dayCls}">${day}</span></span>
+        <span class="ledger-meta">· Stmt: ${fmtDate(e.stmtDate)}</span>
+        ${e.bank?`<span class="ledger-meta">· ${e.bank}</span>`:''}
+        ${e.cardholder?`<span class="ledger-meta">· ${e.cardholder}</span>`:''}
+      </div>
+      <div class="ledger-row3">
+        <select class="inline-sel" onchange="updateWho('${e.id}',this.value)">
+          <option value="joint"${e.who==='joint'?' selected':''}>Joint</option>
+          <option value="me"${e.who==='me'?' selected':''}>Mine</option>
+          <option value="him"${e.who==='him'?' selected':''}>Husband</option>
+        </select>
+        <select class="inline-sel" onchange="updateBehalf('${e.id}',this.value)">
+          <option value="no"${e.behalf!=='yes'?' selected':''}>Not on behalf</option>
+          <option value="yes"${e.behalf==='yes'?' selected':''}>On behalf</option>
+        </select>
+        <button class="del-btn" onclick="deleteExpense('${e.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addExpense(){
+  const desc=document.getElementById('expDesc').value.trim();
+  const amount=parseFloat(document.getElementById('expAmount').value);
+  const txnDate=document.getElementById('expDate').value||new Date().toISOString().slice(0,10);
+  const stmtDate=document.getElementById('expStmtDate').value||txnDate;
+  const cat=document.getElementById('expCat').value;
+  let who=document.getElementById('expWho').value;
+  const payment=document.getElementById('expPayment').value;
+  let behalf=document.getElementById('expBehalf').value;
+  if(!desc||isNaN(amount)||amount<=0){alert('Please enter a description and amount.');return;}
+  const isSG=!isChinaTrip(desc);
+  if(cat==='food'&&isSG&&isWed(txnDate))who='me';
+  if(cat==='transport'&&isWed(txnDate))who='me';
+  if(cat==='food'&&isSG&&isSun(txnDate))behalf='yes';
+  state.expenses.push({id:Date.now().toString(),desc,amount,txnDate,stmtDate,cat,who,behalf,bank:payment==='cash'?'Cash':'Manual',cardholder:'',payment});
+  saveState();
+  currentMonth=stmtDate.slice(0,7);
+  if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
+  document.getElementById('expDesc').value='';
+  document.getElementById('expAmount').value='';
+  renderCashFlow();
+  alert('Expense added!');
+}
+
+function deleteExpense(id){
+  if(!confirm('Delete this transaction?'))return;
+  state.expenses=state.expenses.filter(e=>e.id!==id);
+  saveState();renderCashFlow();renderLedger();
+}
+
+async function handleUpload(event,who){
+  const file=event.target.files[0];if(!file)return;
+  const status=document.getElementById(who==='me'?'statusMe':'statusHim');
+  status.className='upload-status processing';status.textContent='Reading file...';
+  try{
+    const prompt=`Extract all expense transactions from this credit card statement. Return ONLY a JSON array. Each: {"desc":"merchant","amount":positive number,"txnDate":"YYYY-MM-DD","stmtDate":"YYYY-MM-DD","cat":"food|groceries|transport|shopping|health|entertainment|insurance|travel|education|car|household|fees|other","bank":"bank name","cardholder":"name"}. China/overseas=travel. Supermarkets/Finest=groceries. CardUp HL Bank=car. CardUp insurance=insurance. Playfacto/tuition=education. SG dining=food. Skip payments/refunds. Today=${new Date().toISOString().slice(0,10)}.`;
+    let msgContent;
+    if(file.name.endsWith('.pdf')){
+      const buf=await file.arrayBuffer();const bytes=new Uint8Array(buf);
+      let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
+      msgContent=[{type:'document',source:{type:'base64',media_type:'application/pdf',data:btoa(bin)}},{type:'text',text:prompt}];
+    }else{msgContent=prompt+'\n\n'+(await file.text()).slice(0,8000);}
+    status.textContent='Parsing with Claude...';
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:msgContent}]})});
+    const data=await res.json();
+    const tb=data.content.find(b=>b.type==='text');
+    const parsed=JSON.parse((tb?.text||'').replace(/```json|```/g,'').trim());
+    if(!Array.isArray(parsed)||!parsed.length)throw new Error('empty');
+    const today=new Date().toISOString().slice(0,10);
+    parsed.forEach(t=>{
+      const cat=t.cat||'other';const txnDate=t.txnDate||today;
+      const isSG=!isChinaTrip(t.desc||'');
+      let aWho=cat==='food'?'him':'joint';
+      let behalf='no';
+      if(cat==='food'&&isSG&&isSun(txnDate))behalf='yes';
+      if(cat==='food'&&isSG&&isWed(txnDate))aWho='me';
+      if(cat==='transport'&&isWed(txnDate))aWho='me';
+      state.expenses.push({id:Date.now().toString()+Math.random().toString(36).slice(2,4),desc:t.desc||'Unknown',amount:Math.abs(parseFloat(t.amount)||0),txnDate,stmtDate:t.stmtDate||today,cat,who:aWho,behalf,bank:t.bank||'',cardholder:t.cardholder||'',payment:'card'});
+    });
+    saveState();
+    const fs=parsed.find(t=>t.stmtDate)?.stmtDate;
+    if(fs){currentMonth=fs.slice(0,7);if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};}
+    renderCashFlow();
+    status.className='upload-status done';status.textContent=`✓ Imported ${parsed.length} transactions`;
+  }catch(e){status.className='upload-status error';status.textContent='Failed. Try CSV or TXT format.';}
+  event.target.value='';
+}
+
+function cpfVal(id){return parseFloat(document.getElementById(id)?.value)||0;}
+function updateNW(){
+  state.cpf={myOA:cpfVal('myOA'),mySA:cpfVal('mySA'),myMA:cpfVal('myMA'),myCPFIS:cpfVal('myCPFIS'),hisOA:cpfVal('hisOA'),hisSA:cpfVal('hisSA'),hisMA:cpfVal('hisMA'),hisCPFIS:cpfVal('hisCPFIS')};
+  saveState();
+  document.getElementById('myCPFTotal').textContent=fmt((state.cpf.myOA||0)+(state.cpf.mySA||0)+(state.cpf.myMA||0)+(state.cpf.myCPFIS||0));
+  document.getElementById('hisCPFTotal').textContent=fmt((state.cpf.hisOA||0)+(state.cpf.hisSA||0)+(state.cpf.hisMA||0)+(state.cpf.hisCPFIS||0));
+  renderNetWorth();
+}
+function loadCPFInputs(){
+  ['myOA','mySA','myMA','myCPFIS','hisOA','hisSA','hisMA','hisCPFIS'].forEach(id=>{
+    const el=document.getElementById(id);if(el&&state.cpf[id]!==undefined)el.value=state.cpf[id];
+  });
+  document.getElementById('myCPFTotal').textContent=fmt((state.cpf.myOA||0)+(state.cpf.mySA||0)+(state.cpf.myMA||0)+(state.cpf.myCPFIS||0));
+  document.getElementById('hisCPFTotal').textContent=fmt((state.cpf.hisOA||0)+(state.cpf.hisSA||0)+(state.cpf.hisMA||0)+(state.cpf.hisCPFIS||0));
+}
+function renderNetWorth(){
+  document.getElementById('nwDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'long',year:'numeric'});
+  const c=state.cpf;
+  const cpfT=(c.myOA||0)+(c.mySA||0)+(c.myMA||0)+(c.myCPFIS||0)+(c.hisOA||0)+(c.hisSA||0)+(c.hisMA||0)+(c.hisCPFIS||0);
+  const totalA=cpfT+state.assets.reduce((s,a)=>s+(parseFloat(a.value)||0),0);
+  const totalL=state.liabilities.reduce((s,l)=>s+(parseFloat(l.value)||0),0);
+  const nw=totalA-totalL;
+  document.getElementById('nwAssets').textContent=fmt(totalA);
+  document.getElementById('nwLiabilities').textContent=fmt(totalL);
+  const ne=document.getElementById('nwNet');ne.textContent=(nw<0?'-':'')+fmt(Math.abs(nw));ne.className='stat-value '+(nw<0?'neg':'pos');
+  document.getElementById('nwCoverage').textContent=totalL>0?Math.min(Math.round((totalA/totalL)*100),999)+'%':'—';
+  const bp=totalA>0?Math.max(0,Math.min(Math.round((nw/totalA)*100),100)):0;
+  const bar=document.getElementById('nwBar');bar.style.width=bp+'%';bar.style.background=nw<0?'var(--red)':'var(--green)';
+  renderAssets();renderLiabilities();
+}
+function renderAssets(){
+  document.getElementById('assetList').innerHTML=state.assets.length
+    ?state.assets.map(a=>`<div class="list-row"><span class="list-name">${a.name}</span><div style="display:flex;gap:8px;align-items:center"><span class="list-amt">${fmt(parseFloat(a.value)||0)}</span><button class="del-btn" onclick="deleteAsset('${a.id}')">✕</button></div></div>`).join('')
+    :'<p style="color:var(--text2);font-size:12px;padding:8px 0">No assets added yet.</p>';}
+function renderLiabilities(){
+  document.getElementById('liabilityList').innerHTML=state.liabilities.length
+    ?state.liabilities.map(l=>`<div class="list-row"><span class="list-name">${l.name}</span><div style="display:flex;gap:8px;align-items:center"><span class="list-amt" style="color:var(--red)">${fmt(parseFloat(l.value)||0)}</span><button class="del-btn" onclick="deleteLiability('${l.id}')">✕</button></div></div>`).join('')
+    :'<p style="color:var(--text2);font-size:12px;padding:8px 0">No liabilities added yet.</p>';}
+function addAsset(){const n=document.getElementById('assetName').value.trim(),v=parseFloat(document.getElementById('assetValue').value);if(!n||isNaN(v))return;state.assets.push({id:Date.now().toString(),name:n,value:v});saveState();renderNetWorth();document.getElementById('assetName').value='';document.getElementById('assetValue').value='';}
+function deleteAsset(id){if(!confirm('Remove this asset?'))return;state.assets=state.assets.filter(a=>a.id!==id);saveState();renderNetWorth();}
+function addLiability(){const n=document.getElementById('liabilityName').value.trim(),v=parseFloat(document.getElementById('liabilityValue').value);if(!n||isNaN(v))return;state.liabilities.push({id:Date.now().toString(),name:n,value:v});saveState();renderNetWorth();document.getElementById('liabilityName').value='';document.getElementById('liabilityValue').value='';}
+function deleteLiability(id){if(!confirm('Remove this liability?'))return;state.liabilities=state.liabilities.filter(l=>l.id!==id);saveState();renderNetWorth();}
+
+// also need nwCoverage display
+document.getElementById('nwAssets').parentElement.parentElement.querySelector && (function(){
+  const grid=document.querySelector('#panel-networth .sg4');
+  if(grid&&grid.children.length<4){
+    const d=document.createElement('div');d.className='stat';
+    d.innerHTML='<div class="stat-label">Coverage</div><div class="stat-value" id="nwCoverage">—</div>';
+    grid.appendChild(d);
+  }
+})();
+
+document.getElementById('expCat').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+document.getElementById('expDate').value=new Date().toISOString().slice(0,10);
+document.getElementById('expStmtDate').value=new Date().toISOString().slice(0,10);
+renderCashFlow();
+loadCPFInputs();
+renderNetWorth();
+</script>
+</body>
+</html>
