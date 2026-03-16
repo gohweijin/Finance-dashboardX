@@ -1,688 +1,772 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Finance">
-<meta name="theme-color" content="#ffffff">
-<title>Family Finance Dashboard</title>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SG Family Finance</title>
 <style>
-:root {
-  --bg: #ffffff; --bg2: #f5f5f4; --bg3: #e8e6e1;
-  --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b97;
-  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.2);
-  --green: #1D9E75; --blue: #378ADD; --red: #E24B4A;
-  --amber: #BA7517; --purple: #7F77DD; --teal: #185FA5;
-  --radius: 10px; --radius-sm: 6px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #1c1c1e; --bg2: #2c2c2e; --bg3: #3a3a3c;
-    --text: #f2f2f7; --text2: #aeaeb2; --text3: #636366;
-    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
-  }
-}
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; background: var(--bg3); color: var(--text); font-size: 14px; padding-bottom: 90px; }
-.header { background: var(--bg); padding: 16px 16px 12px; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 100; }
-.header-top { display: flex; justify-content: space-between; align-items: center; }
-.header-title { font-size: 11px; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
-.header-main { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
-.month-nav { display: flex; gap: 6px; }
-.month-btn { background: var(--bg2); border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 16px; color: var(--text2); cursor: pointer; }
-/* Bottom tab bar */
-.tabbar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 200; }
-.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 0; cursor: pointer; border: none; background: none; color: var(--text3); font-size: 10px; letter-spacing: 0.03em; }
-.tab-item.active { color: var(--blue); }
-.tab-icon { font-size: 22px; line-height: 1; }
-/* Panels */
-.panel { display: none; padding: 14px 14px 0; }
-.panel.active { display: block; }
-/* Stats grid */
-.sg4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.sg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.stat { background: var(--bg); border-radius: var(--radius); padding: 12px 14px; }
-.stat-label { font-size: 10px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
-.stat-value { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
-.stat-value.pos { color: var(--green); } .stat-value.neg { color: var(--red); }
-.stat-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
-/* Cards */
-.card { background: var(--bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
-.card-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
-.card-sub { font-size: 11px; font-weight: 400; color: var(--text2); margin-left: 6px; }
-/* Form fields */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 10px; color: var(--text2); letter-spacing: 0.05em; text-transform: uppercase; }
-.field input, .field select { font-size: 14px; font-family: inherit; padding: 9px 10px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); -webkit-appearance: none; width: 100%; }
-.field input:focus, .field select:focus { outline: 2px solid var(--blue); border-color: transparent; }
-.btn-primary { width: 100%; margin-top: 10px; padding: 12px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; cursor: pointer; }
-.btn-primary:active { opacity: 0.85; }
-/* Upload */
-.upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 10px; cursor: pointer; }
-.upload-zone:active { background: var(--bg2); }
-.upload-label { font-size: 13px; color: var(--text2); }
-.upload-label span { color: var(--blue); font-weight: 500; }
-.upload-status { font-size: 12px; margin-top: 4px; min-height: 16px; }
-.upload-status.processing { color: var(--amber); }
-.upload-status.done { color: var(--green); }
-.upload-status.error { color: var(--red); }
-/* Ledger */
-.ledger-item { background: var(--bg); border-radius: var(--radius); margin-bottom: 6px; padding: 12px 14px; }
-.ledger-item.on-behalf { opacity: 0.5; }
-.ledger-row1 { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-.ledger-desc { font-size: 13px; font-weight: 500; flex: 1; margin-right: 8px; }
-.ledger-amount { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ledger-row2 { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-.ledger-meta { font-size: 10px; color: var(--text2); }
-.ledger-row3 { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 0.5px solid var(--border); }
-.inline-sel { font-size: 12px; padding: 4px 6px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); flex: 1; }
-.del-btn { padding: 4px 10px; background: none; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); color: var(--red); font-size: 12px; cursor: pointer; }
-/* Pills */
-.pill { font-size: 10px; padding: 2px 7px; border-radius: 10px; display: inline-block; white-space: nowrap; font-weight: 500; }
-.who-me { background: #dbeafe; color: #1e40af; }
-.who-him { background: #dcfce7; color: #166534; }
-.who-joint { background: var(--bg2); color: var(--text2); }
-.cash-pill { background: #fef3c7; color: #92400e; }
-.behalf-pill { background: #ffedd5; color: #9a3412; }
-.day-sun { color: var(--red); font-weight: 600; }
-.day-wed { color: var(--green); font-weight: 600; }
-/* Category bars */
-.cat-bar-wrap { margin-bottom: 10px; }
-.cat-bar-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
-.cat-bar-name { font-size: 12px; color: var(--text); }
-.cat-bar-amt { font-size: 12px; color: var(--text2); font-variant-numeric: tabular-nums; }
-.cat-bar-track { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-.cat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-/* CPF */
-.cpf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-.cpf-field { background: var(--bg2); border-radius: var(--radius-sm); padding: 10px; }
-.cpf-field label { font-size: 10px; color: var(--text2); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-.cpf-input { font-size: 14px; font-weight: 600; background: transparent; border: none; border-bottom: 1px solid var(--border2); width: 100%; color: var(--text); padding: 2px 0; outline: none; font-variant-numeric: tabular-nums; }
-.cpf-rate { font-size: 9px; color: var(--text3); margin-top: 3px; }
-.cpf-total { font-size: 11px; color: var(--text2); text-align: right; margin-top: 4px; }
-/* NW bar */
-.nw-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin: 8px 0 14px; }
-.nw-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
-/* Asset/liability rows */
-.list-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
-.list-row:last-child { border-bottom: none; }
-.list-name { font-size: 13px; }
-.list-amt { font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
-/* Filters */
-.filter-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
-.filter-scroll::-webkit-scrollbar { display: none; }
-.filter-scroll select { font-size: 12px; padding: 6px 10px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); white-space: nowrap; flex-shrink: 0; }
-.filter-scroll input { font-size: 12px; padding: 6px 10px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); width: 120px; flex-shrink: 0; }
-.sl { font-size: 11px; color: var(--text2); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 8px; margin-top: 4px; }
-.hint { font-size: 11px; color: var(--text2); background: var(--bg2); border-radius: var(--radius-sm); padding: 8px 10px; margin-top: 6px; line-height: 1.5; }
-@media (prefers-color-scheme: dark) {
-  .who-me { background: #1e3a5f; color: #93c5fd; }
-  .who-him { background: #14532d; color: #86efac; }
-  .cash-pill { background: #451a03; color: #fcd34d; }
-  .behalf-pill { background: #431407; color: #fdba74; }
-}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:ui-monospace,monospace;background:#fff;color:#111;font-size:13px;padding:12px}
+.tabs{display:flex;border-bottom:1px solid #e5e5e5;margin-bottom:16px;flex-wrap:wrap}
+.tab{font-size:11px;padding:7px 13px;cursor:pointer;color:#666;letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;white-space:nowrap}
+.tab.on{color:#111;border-bottom-color:#111}
+.pnl{display:none}.pnl.on{display:block}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.box{background:#f5f5f5;border-radius:6px;padding:10px 12px}
+.lbl{font-size:10px;color:#666;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.val{font-size:15px;font-weight:600;font-family:inherit}
+.pos{color:#1a7a4a}.neg{color:#c0392b}
+.sub{font-size:10px;color:#888;margin-top:2px}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:6px;padding:12px;margin-bottom:10px}
+.ctitle{font-size:12px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.hrow{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;gap:6px}
+.htitle{font-size:10px;color:#666;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.hval{font-size:17px;font-weight:600}
+.mnav{display:flex;align-items:center;gap:5px}
+.mbtn{background:none;border:1px solid #ddd;border-radius:4px;padding:3px 9px;cursor:pointer;font-family:inherit;font-size:11px;color:#666}
+.irow{display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap;margin-bottom:7px}
+.fld{display:flex;flex-direction:column;gap:3px}
+.fld label{font-size:10px;color:#666;letter-spacing:.06em;text-transform:uppercase}
+.fld input,.fld select{font-size:12px;font-family:inherit;padding:3px 5px;border:1px solid #ddd;border-radius:3px}
+.fld input[type=number]{width:95px}.fld input[type=text]{width:135px}.fld input[type=date]{width:120px}.fld select{width:135px}
+.btn{font-size:11px;padding:5px 11px;cursor:pointer;font-family:inherit;white-space:nowrap;border:1px solid #ddd;border-radius:4px;background:#fff}
+.wa{font-size:12px;padding:8px 14px;cursor:pointer;font-family:inherit;background:#25D366;color:white;border:none;border-radius:6px;white-space:nowrap;font-weight:600}
+.lbox{border:1px solid #e5e5e5;border-radius:6px;overflow:hidden;margin-bottom:10px}
+.lhdr{display:grid;gap:4px;padding:6px 9px;background:#f5f5f5;font-size:10px;color:#666;letter-spacing:.05em;text-transform:uppercase}
+.lrow{display:grid;gap:4px;padding:5px 9px;border-top:1px solid #f0f0f0;font-size:11px;align-items:center}
+.lrow:hover{background:#fafafa}
+.lrow.ob{opacity:.5}
+.lrow.cr{background:#f0faf5}
+.lcols{grid-template-columns:50px 50px 26px 1fr 46px 46px 80px 58px 62px 56px 56px 18px}
+.delbtn{background:none;border:none;cursor:pointer;color:#aaa;font-size:11px;padding:1px 3px;border-radius:3px}
+.delbtn:hover{background:#fee;color:#c0392b}
+.pill{font-size:9px;padding:1px 5px;border-radius:3px;display:inline-block;white-space:nowrap}
+.cpill{background:#fef3c7;color:#92400e}
+.crpill{background:#dcfce7;color:#15803d;margin-left:3px}
+.ok{background:#dcfce7;color:#15803d;font-size:10px;padding:2px 7px;border-radius:4px}
+.pend{background:#fef3c7;color:#92400e;font-size:10px;padding:2px 7px;border-radius:4px}
+.ar{text-align:right;font-family:inherit}
+.frow{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.frow label{font-size:10px;color:#666;letter-spacing:.06em;text-transform:uppercase}
+.fsel{font-size:11px;font-family:inherit;padding:3px 5px;border-radius:4px;border:1px solid #ddd;background:#fff}
+.isel{font-size:10px;font-family:inherit;padding:2px 3px;border-radius:3px;border:1px solid #ddd;background:#fff;cursor:pointer}
+.iinp{font-size:10px;font-family:inherit;padding:2px 4px;border-radius:3px;border:1px solid #ddd;background:#fff;width:62px}
+.empty{padding:20px;text-align:center;color:#aaa;font-size:12px}
+.sline{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0}
+.sline:last-child{border-bottom:none}
+.hrow2{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #f0f0f0;gap:6px}
+.wabox{background:#f5f5f5;border-radius:6px;padding:12px;font-size:12px;line-height:1.7;white-space:pre-wrap;font-family:sans-serif;margin-bottom:12px}
+.leg{background:#f5f5f5;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:11px;line-height:1.9}
+.cbar{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.cbl{font-size:11px;width:120px;flex-shrink:0}
+.cbt{flex:1;height:5px;background:#eee;border-radius:3px;overflow:hidden}
+.cbf{height:100%;border-radius:3px}
+.cba{font-size:11px;font-family:inherit;width:75px;text-align:right;flex-shrink:0;color:#666}
+.cbp{font-size:10px;width:28px;text-align:right;flex-shrink:0;color:#888}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cpfg{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px}
+.cpff{background:#f5f5f5;border-radius:5px;padding:6px 8px}
+.cpff label{font-size:10px;color:#666;text-transform:uppercase;display:block;margin-bottom:2px}
+.cpfi{font-size:12px;font-family:inherit;font-weight:600;background:transparent;border:none;border-bottom:1px solid #ddd;width:100%;outline:none;padding:2px 0}
+.cpfr{font-size:9px;color:#888;margin-top:2px}
+.arow,.lrow3{display:grid;grid-template-columns:1fr 120px 24px;gap:5px;padding:6px 10px;border-top:1px solid #f0f0f0;font-size:11px;align-items:center}
+.ahdr,.lhdr3{display:grid;grid-template-columns:1fr 120px 24px;gap:5px;padding:5px 10px;background:#f5f5f5;font-size:10px;color:#666;text-transform:uppercase}
+.nwbar{height:5px;background:#e5e5e5;border-radius:3px;overflow:hidden;margin:5px 0 16px}
+.nwfill{height:100%;border-radius:3px}
+.exbtn{font-size:10px;padding:3px 10px;cursor:pointer;font-family:inherit;color:#15803d;border:1px solid #86efac;border-radius:4px;background:#dcfce7;font-weight:600}
+.rbtn{font-size:10px;padding:3px 9px;cursor:pointer;font-family:inherit;color:#666;border:1px solid #ddd;border-radius:4px;background:none}
+.sbtn{font-size:10px;padding:3px 10px;cursor:pointer;font-family:inherit;border-radius:4px;white-space:nowrap}
+@media(max-width:700px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.cpfg{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <div class="header-top">
-    <div>
-      <div class="header-title">Family finance</div>
-      <div class="header-main" id="headerMonth"></div>
-    </div>
-    <div class="month-nav">
-      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
-      <button class="month-btn" onclick="changeMonth(1)">›</button>
-    </div>
-  </div>
+<div class="tabs">
+  <button class="tab on" onclick="go('cf',this)">Cash Flow</button>
+  <button class="tab" onclick="go('cat',this)">Categories</button>
+  <button class="tab" onclick="go('led',this)">Ledger</button>
+  <button class="tab" onclick="go('set',this)">Settlement</button>
+  <button class="tab" onclick="go('nw',this)">Net Worth</button>
 </div>
-
-<!-- PANELS -->
-<div id="panel-cashflow" class="panel active">
-  <div style="height:10px"></div>
-  <div class="sg4">
-    <div class="stat"><div class="stat-label">Income</div><div class="stat-value pos" id="cfIncome">S$0</div></div>
-    <div class="stat"><div class="stat-label">Expenses</div><div class="stat-value" id="cfExpenses">S$0</div></div>
-    <div class="stat"><div class="stat-label">On behalf</div><div class="stat-value" id="cfOnBehalf" style="color:var(--text2)">S$0</div></div>
-    <div class="stat"><div class="stat-label">Savings</div><div class="stat-value" id="cfSavings">S$0</div><div class="stat-sub" id="cfRate"></div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Monthly income</div>
-    <div class="form-grid">
-      <div class="field"><label>Your income (S$)</label><input type="number" id="myIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
-      <div class="field"><label>Husband's income</label><input type="number" id="hisIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
-      <div class="field" style="grid-column:span 2"><label>Other income (S$)</label><input type="number" id="otherIncome" placeholder="0" inputmode="decimal" oninput="updateIncome()"></div>
-    </div>
-  </div>
-
-  <div class="sl">Upload statement</div>
-  <div class="upload-zone" onclick="document.getElementById('fileMe').click()">
-    <input type="file" id="fileMe" accept=".pdf,.csv,.txt" style="display:none" onchange="handleUpload(event,'me')">
-    <div class="upload-label">Your statement — <span>tap to browse</span></div>
-    <div class="upload-label" style="font-size:11px;margin-top:2px">PDF, CSV or TXT</div>
-    <div class="upload-status" id="statusMe"></div>
-  </div>
-  <div class="upload-zone" onclick="document.getElementById('fileHim').click()">
-    <input type="file" id="fileHim" accept=".pdf,.csv,.txt" style="display:none" onchange="handleUpload(event,'him')">
-    <div class="upload-label">Husband's statement — <span>tap to browse</span></div>
-    <div class="upload-status" id="statusHim"></div>
-  </div>
-
-  <div class="sl" style="margin-top:4px">Add expense</div>
-  <div class="card">
-    <div class="card-title">Manual entry <span class="card-sub">cash, PayNow, GIRO</span></div>
-    <div class="form-grid">
-      <div class="field" style="grid-column:span 2"><label>Description</label><input type="text" id="expDesc" placeholder="e.g. Ironing clothes"></div>
-      <div class="field"><label>Amount (S$)</label><input type="number" id="expAmount" placeholder="0.00" inputmode="decimal" step="0.01"></div>
-      <div class="field"><label>Payment</label>
-        <select id="expPayment">
-          <option value="card">Card</option><option value="cash">Cash</option>
-          <option value="paynow">PayNow</option><option value="giro">GIRO</option>
-          <option value="bank_transfer">Bank transfer</option>
-        </select>
-      </div>
-      <div class="field"><label>Txn date</label><input type="date" id="expDate"></div>
-      <div class="field"><label>Stmt / pay date</label><input type="date" id="expStmtDate"></div>
-      <div class="field"><label>Category</label><select id="expCat"></select></div>
-      <div class="field"><label>Who</label>
-        <select id="expWho"><option value="joint">Joint</option><option value="me">Mine</option><option value="him">Husband</option></select>
-      </div>
-      <div class="field" style="grid-column:span 2"><label>On behalf</label>
-        <select id="expBehalf"><option value="no">No — counts as expense</option><option value="yes">Yes — tracked but excluded</option></select>
-      </div>
-    </div>
-    <button class="btn-primary" onclick="addExpense()">Add expense</button>
-    <div class="hint">Cash transactions (ironing, hawker, etc.) won't appear in card statements — add them here. They count toward expenses normally.</div>
-  </div>
-</div>
-
-<div id="panel-categories" class="panel">
-  <div style="height:10px"></div>
-  <div class="hint" style="margin-bottom:10px">Excludes on-behalf transactions</div>
-  <div class="sg4" id="catTopStats"></div>
-  <div class="card" id="catBarsCard"><div id="catBars"></div></div>
-</div>
-
-<div id="panel-ledger" class="panel">
-  <div style="height:10px"></div>
-  <div class="filter-scroll">
-    <select id="filterMonth" onchange="renderLedger()"></select>
-    <select id="filterWho" onchange="renderLedger()">
-      <option value="">All</option><option value="me">Mine</option><option value="him">Husband</option><option value="joint">Joint</option>
-    </select>
-    <select id="filterCat" onchange="renderLedger()"></select>
-    <select id="filterBehalf" onchange="renderLedger()">
-      <option value="">All</option><option value="no">Excl. on behalf</option><option value="yes">On behalf only</option>
-    </select>
-    <input type="text" id="filterSearch" placeholder="Search..." oninput="renderLedger()">
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
-    <span style="font-size:12px;color:var(--text2)" id="ledgerCount"></span>
-    <span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums" id="ledgerTotal"></span>
-  </div>
-  <div id="ledgerList"></div>
-</div>
-
-<div id="panel-networth" class="panel">
-  <div style="height:10px"></div>
-  <div class="sg4">
-    <div class="stat"><div class="stat-label">Assets</div><div class="stat-value pos" id="nwAssets">S$0</div></div>
-    <div class="stat"><div class="stat-label">Liabilities</div><div class="stat-value neg" id="nwLiabilities">S$0</div></div>
-    <div class="stat" style="grid-column:span 2"><div class="stat-label">Net worth</div><div class="stat-value" id="nwNet">S$0</div></div>
-  </div>
-  <div class="nw-bar"><div class="nw-fill" id="nwBar" style="width:0%"></div></div>
-
-  <div class="sl">Your CPF <span style="font-size:10px;font-weight:400">OA 2.5% · SA/MA 4%</span></div>
-  <div class="card">
-    <div class="cpf-grid">
-      <div class="cpf-field"><label>OA</label><input class="cpf-input" type="number" inputmode="decimal" id="myOA" oninput="updateNW()"><div class="cpf-rate">Housing · Education</div></div>
-      <div class="cpf-field"><label>SA</label><input class="cpf-input" type="number" inputmode="decimal" id="mySA" oninput="updateNW()"><div class="cpf-rate">Retirement</div></div>
-      <div class="cpf-field"><label>MA</label><input class="cpf-input" type="number" inputmode="decimal" id="myMA" oninput="updateNW()"><div class="cpf-rate">MediShield</div></div>
-      <div class="cpf-field"><label>CPFIS</label><input class="cpf-input" type="number" inputmode="decimal" id="myCPFIS" oninput="updateNW()"><div class="cpf-rate">Investments</div></div>
-    </div>
-    <div class="cpf-total">Total: <strong id="myCPFTotal">S$0</strong></div>
-  </div>
-
-  <div class="sl">Husband's CPF</div>
-  <div class="card">
-    <div class="cpf-grid">
-      <div class="cpf-field"><label>OA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisOA" oninput="updateNW()"><div class="cpf-rate">Housing · Education</div></div>
-      <div class="cpf-field"><label>SA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisSA" oninput="updateNW()"><div class="cpf-rate">Retirement</div></div>
-      <div class="cpf-field"><label>MA</label><input class="cpf-input" type="number" inputmode="decimal" id="hisMA" oninput="updateNW()"><div class="cpf-rate">MediShield</div></div>
-      <div class="cpf-field"><label>CPFIS</label><input class="cpf-input" type="number" inputmode="decimal" id="hisCPFIS" oninput="updateNW()"><div class="cpf-rate">Investments</div></div>
-    </div>
-    <div class="cpf-total">Total: <strong id="hisCPFTotal">S$0</strong></div>
-  </div>
-
-  <div class="sl">Other assets</div>
-  <div class="card">
-    <div id="assetList"></div>
-    <div class="form-grid" style="margin-top:10px">
-      <div class="field"><label>Asset name</label><input type="text" id="assetName" placeholder="e.g. HDB flat"></div>
-      <div class="field"><label>Value (S$)</label><input type="number" id="assetValue" placeholder="0" inputmode="decimal"></div>
-    </div>
-    <button class="btn-primary" onclick="addAsset()">Add asset</button>
-  </div>
-
-  <div class="sl">Liabilities</div>
-  <div class="card">
-    <div id="liabilityList"></div>
-    <div class="form-grid" style="margin-top:10px">
-      <div class="field"><label>Liability name</label><input type="text" id="liabilityName" placeholder="e.g. HDB loan"></div>
-      <div class="field"><label>Amount (S$)</label><input type="number" id="liabilityValue" placeholder="0" inputmode="decimal"></div>
-    </div>
-    <button class="btn-primary" onclick="addLiability()">Add liability</button>
-  </div>
-</div>
-
-<!-- BOTTOM TAB BAR -->
-<nav class="tabbar">
-  <button class="tab-item active" onclick="switchTab('cashflow',this)">
-    <span class="tab-icon">💰</span>Cash Flow
-  </button>
-  <button class="tab-item" onclick="switchTab('categories',this)">
-    <span class="tab-icon">📊</span>Categories
-  </button>
-  <button class="tab-item" onclick="switchTab('ledger',this)">
-    <span class="tab-icon">📋</span>Ledger
-  </button>
-  <button class="tab-item" onclick="switchTab('networth',this)">
-    <span class="tab-icon">🏦</span>Net Worth
-  </button>
-</nav>
-
+<div id="cf" class="pnl on"></div>
+<div id="cat" class="pnl"></div>
+<div id="led" class="pnl"></div>
+<div id="set" class="pnl"></div>
+<div id="nw" class="pnl"></div>
 <script>
 const CATS=[
-  {id:'food',name:'Food & Dining',color:'#1D9E75'},
-  {id:'groceries',name:'Groceries',color:'#378ADD'},
-  {id:'transport',name:'Transport',color:'#BA7517'},
-  {id:'shopping',name:'Shopping',color:'#D4537E'},
-  {id:'health',name:'Health',color:'#7F77DD'},
-  {id:'entertainment',name:'Entertainment',color:'#D85A30'},
-  {id:'insurance',name:'Insurance',color:'#639922'},
-  {id:'travel',name:'Travel',color:'#185FA5'},
-  {id:'education',name:'Education',color:'#993556'},
-  {id:'car',name:'Car loan',color:'#5F5E5A'},
-  {id:'household',name:'Household',color:'#0F6E56'},
-  {id:'fees',name:'Fees & Charges',color:'#888780'},
-  {id:'other',name:'Other',color:'#B4B2A9'},
+  {id:'food',n:'Food & Dining',c:'#1D9E75'},{id:'groceries',n:'Groceries',c:'#378ADD'},
+  {id:'transport',n:'Transport',c:'#BA7517'},{id:'shopping',n:'Shopping',c:'#D4537E'},
+  {id:'health',n:'Health',c:'#7F77DD'},{id:'entertainment',n:'Entertainment',c:'#D85A30'},
+  {id:'insurance',n:'Insurance',c:'#639922'},{id:'travel',n:'Travel',c:'#185FA5'},
+  {id:'education',n:'Education',c:'#993556'},{id:'car',n:'Car/Petrol',c:'#5F5E5A'},
+  {id:'household',n:'Household',c:'#0F6E56'},{id:'utilities',n:'Utilities',c:'#3C3489'},
+  {id:'tax',n:'Tax',c:'#885533'},{id:'fees',n:'Fees',c:'#888780'},
+  {id:'family',n:'Family',c:'#C07830'},{id:'other',n:'Other',c:'#B4B2A9'},
 ];
-function catById(id){return CATS.find(c=>c.id===id)||CATS[CATS.length-1];}
-function getDOW(s){if(!s)return -1;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).getDay();}
-function dayName(s){const n=getDOW(s);return n<0?'':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n];}
-function isSun(s){return getDOW(s)===0;}
-function isWed(s){return getDOW(s)===3;}
-function isChinaTrip(d){return /beijing|shanghai|shenzhen|china|cny|alp\*|didi|meituan|weixin|tianlun|dongheng|guangxi|voyagecoffee/i.test(d||'');}
-function fmt(n){return'S$'+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:0,maximumFractionDigits:0});}
-function fmtD(n){return'S$'+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtDate(s){return s?s.slice(5).replace('-','/'):'—';}
+const gc=id=>CATS.find(x=>x.id===id)||CATS[CATS.length-1];
+const gdow=s=>{if(!s)return -1;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d).getDay();};
+const gdn=s=>{const n=gdow(s);return n<0?'':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n];};
+const isO=e=>!e.b||e.b==='no';
+const fd=(n,dp=2)=>'S$'+Math.abs(n).toLocaleString('en-SG',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const f0=n=>fd(n,0);
+const fdt=s=>s?s.slice(5).replace('-','/'):'—';
+const ml=mo=>{const[y,m]=mo.split('-');return new Date(+y,+m-1,1).toLocaleDateString('en-SG',{month:'long',year:'numeric'});};
+const ga=e=>parseFloat(e.amt)||0;
+const gh=e=>{if(e.h==='w')return'w';if(e.h==='h')return'h';return(e.bk==='Citi'||e.bk==='DBS')?'h':'w';};
+const em=e=>(e.sd||e.td||'').slice(0,7);
+const isCr=e=>ga(e)<0;
 
-const AMOUNTS={p01:877.96,p02:161.45,p03:2.66,p04:6.53,p05:2.85,p06:20.87,p07:228.25,p08:596.32,p09:10.91,p10:14.97,p11:66.17,p12:20.28,p13:37.72,p14:5.83,p15:34.17,p16:120.63,p17:9.27,p18:12.50,p19:15.42,p20:51.14,p21:12.47,p22:15.61,p23:112.23,p24:1.88,p25:33.75,p26:249.66,p27:132.34,p28:1216.51,p29:360.63,p30:594.76,p31:186.42,p32:5.41,p33:10.00,p34:10.60,p35:16.20,p36:6.40,p37:7.40,p38:11.00,p39:35.10,p40:14.40,p41:6.00,p42:130.80,p43:9.50,p44:106.46,p45:69.48,p46:50.00,p47:31.70,p48:6.20,p49:18.90,p50:48.10,p51:39.83,p52:47.20,p53:10.80,p54:25.00,p55:120.98,p56:23.20,p57:10.55,p58:145.08,p59:5.50,p60:6.00,p61:20.92,p62:100.00,p63:43.60,p64:140.25,p65:102.02,p66:3.54,p67:13.50,p68:13.50,p69:13.50,p70:13.50,p71:13.50};
-const PL=[
-  {id:'p01',desc:'SP Daylight Co.',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p02',desc:'SP Fatskn Calgary',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p03',desc:'Didi Taxi Beijing',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p04',desc:'Tous Les Jours Shanghai',stmtDate:'2026-01-13',txnDate:'2025-11-26',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p05',desc:'Guangxi Shouzu Xing',stmtDate:'2026-01-13',txnDate:'2025-11-27',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p06',desc:'CR Vanguard Hua Run Shanghai',stmtDate:'2026-01-13',txnDate:'2025-11-28',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p07',desc:'Beijing Tianlun Hotel',stmtDate:'2026-01-13',txnDate:'2025-11-29',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p08',desc:'Dongheng Beijing Hotel',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p09',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p10',desc:'Uniqlo Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p11',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p12',desc:'Weixin Scan QR Shenzhen',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p13',desc:'Beijingdian Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p14',desc:'Didi Taxi Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p15',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p16',desc:'ALP Bakeries Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p17',desc:'Meituan Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p18',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p19',desc:'Meituan Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p20',desc:'ALP Other Retail Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p21',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p22',desc:'Didi Taxi Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p23',desc:'Haidilao Hot Pot Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p24',desc:'ALP Supermarkets Shanghai',stmtDate:'2026-01-13',txnDate:'2025-12-02',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p25',desc:'Voyage Coffee Beijing',stmtDate:'2026-01-13',txnDate:'2025-12-03',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p26',desc:'CardUp - Liberty Insurance',stmtDate:'2026-01-13',txnDate:'2025-12-01',who:'joint',cat:'insurance',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p27',desc:'CardUp - HSBC Life Insurance',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'joint',cat:'insurance',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p28',desc:'CardUp - HL Bank (Car loan)',stmtDate:'2026-01-13',txnDate:'2025-12-12',who:'joint',cat:'car',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p29',desc:'CardUp - Distinct Creati (Tuition)',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p30',desc:'CardUp - Playfacto@Ubi',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p31',desc:'CardUp - Playfacto@Ubi',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p32',desc:'Finest Paya Lebar Quarter',stmtDate:'2026-01-13',txnDate:'2025-11-21',who:'joint',cat:'groceries',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p33',desc:'Four Leaves Bishan',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
-  {id:'p34',desc:'Guardian Junction 8',stmtDate:'2026-01-13',txnDate:'2025-11-23',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p35',desc:'BreadTalk IHQ',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p36',desc:'Four Leaves Parkway',stmtDate:'2026-01-13',txnDate:'2025-12-08',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p37',desc:'Shopback GO',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p38',desc:'Lavender Jewel',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p39',desc:'Muji Parkway Parade',stmtDate:'2026-01-13',txnDate:'2025-12-13',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p40',desc:'So Good Bakery Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p41',desc:'Guardian I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p42',desc:'Ubi Dental Clinic',stmtDate:'2026-01-13',txnDate:'2025-12-18',who:'joint',cat:'health',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p43',desc:'GV Plaza Singapura',stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p44',desc:"Toys'R'Us Parkway",stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p45',desc:"Toys'R'Us Parkway",stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p46',desc:'Popular Book J8',stmtDate:'2026-01-13',txnDate:'2025-12-21',who:'joint',cat:'education',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p47',desc:'H&M Singapore',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'joint',cat:'shopping',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p48',desc:'ACX Foodcourt',stmtDate:'2026-01-13',txnDate:'2025-11-24',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p49',desc:'ACX Foodcourt',stmtDate:'2026-01-13',txnDate:'2025-11-24',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p50',desc:'Trip.com',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p51',desc:'Trip.com',stmtDate:'2026-01-13',txnDate:'2025-11-25',who:'joint',cat:'travel',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p52',desc:'FR IHQ First Street',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p53',desc:'FR IHQ Stall 09',stmtDate:'2026-01-13',txnDate:'2025-12-04',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p54',desc:'UOB KrisFlyer Conversion Fee',stmtDate:'2026-01-13',txnDate:'2025-12-05',who:'joint',cat:'fees',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p55',desc:'Song Fa NPC',stmtDate:'2026-01-13',txnDate:'2025-12-07',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
-  {id:'p56',desc:'Guzman y Gomez',stmtDate:'2026-01-13',txnDate:'2025-12-09',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p57',desc:"McDonald's",stmtDate:'2026-01-13',txnDate:'2025-12-11',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p58',desc:'Omote Thomson Plaza',stmtDate:'2026-01-13',txnDate:'2025-12-14',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
-  {id:'p59',desc:'SG Hawker I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p60',desc:'SG Hawker I12 Katong',stmtDate:'2026-01-13',txnDate:'2025-12-16',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p61',desc:'HK150 Connoisseur',stmtDate:'2026-01-13',txnDate:'2025-12-18',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p62',desc:'Sen-Ryo ION',stmtDate:'2026-01-13',txnDate:'2025-12-19',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p63',desc:'HK150 Connoisseur',stmtDate:'2026-01-13',txnDate:'2025-12-20',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p64',desc:'Boon Tong Kee AMK',stmtDate:'2026-01-13',txnDate:'2025-12-21',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'yes',payment:'card'},
-  {id:'p65',desc:'Bedrock Bar & Grill',stmtDate:'2026-01-13',txnDate:'2025-12-22',who:'him',cat:'food',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p66',desc:'Bus/MRT',stmtDate:'2026-01-13',txnDate:'2025-11-19',who:'me',cat:'transport',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p67',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p68',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p69',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p70',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'p71',desc:'KrisPay Golden Village',stmtDate:'2026-01-13',txnDate:'2025-12-17',who:'joint',cat:'entertainment',bank:'UOB',cardholder:'Wife',behalf:'no',payment:'card'},
-  {id:'cash01',desc:'Ironing service',stmtDate:'2026-01-01',txnDate:'2026-01-01',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
-  {id:'cash02',desc:'Ironing service',stmtDate:'2026-01-08',txnDate:'2026-01-08',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
-  {id:'cash03',desc:'Ironing service',stmtDate:'2026-01-15',txnDate:'2026-01-15',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
-  {id:'cash04',desc:'Ironing service',stmtDate:'2026-01-22',txnDate:'2026-01-22',who:'me',cat:'household',bank:'Cash',cardholder:'Wife',behalf:'no',payment:'cash',amount:40},
+// ── STATEMENT MONTH = PAYMENT MONTH ──────────────────────────────────────
+// Jan:  UOB Jan stmt 2026-01-13 → Jan | ironing cash01-04 → Jan | pa01 → Jan
+// Feb:  UOB Feb stmt 2026-02-13 → Feb | Amex Jan stmt (due Feb) sd=2026-02-23 → Feb | ironing cash05-08 → Feb | pa02 → Feb
+// Mar:  UOB Mar stmt 2026-03-13 → Mar | Amex Feb stmt (due Mar) sd=2026-03-23 → Mar (incl. cashback -3.13) | Citi 2026-03-16 → Mar | DBS 2026-03-20 → Mar | pa03 → Mar
+
+const SEED=[
+// ── Cash: ironing Jan ──
+{id:'cash01',desc:'Ironing service',sd:'2026-01-03',td:'2026-01-03',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash02',desc:'Ironing service',sd:'2026-01-10',td:'2026-01-10',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash03',desc:'Ironing service',sd:'2026-01-17',td:'2026-01-17',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash04',desc:'Ironing service',sd:'2026-01-24',td:'2026-01-24',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+// ── Cash: ironing Feb ──
+{id:'cash05',desc:'Ironing service',sd:'2026-02-06',td:'2026-02-06',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash06',desc:'Ironing service',sd:'2026-02-13',td:'2026-02-13',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash07',desc:'Ironing service',sd:'2026-02-20',td:'2026-02-20',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+{id:'cash08',desc:'Ironing service',sd:'2026-02-27',td:'2026-02-27',who:'me',cat:'household',bk:'Cash',h:'w',b:'no',amt:40,ss:0},
+// ── Parents allowance ──
+{id:'pa01',desc:'Parents allowance',sd:'2026-01-31',td:'2026-01-31',who:'me',cat:'family',bk:'Cash',h:'w',b:'no',amt:700,ss:0},
+{id:'pa02',desc:'Parents allowance',sd:'2026-02-28',td:'2026-02-28',who:'me',cat:'family',bk:'Cash',h:'w',b:'no',amt:700,ss:0},
+{id:'pa03',desc:'Parents allowance',sd:'2026-03-31',td:'2026-03-31',who:'me',cat:'family',bk:'Cash',h:'w',b:'no',amt:700,ss:0},
+// ── UOB Jan stmt sd=2026-01-13 ──
+{id:'p01',desc:'SP Daylight Co.',sd:'2026-01-13',td:'2025-11-23',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:877.96,ss:0},
+{id:'p02',desc:'SP Fatskn Calgary',sd:'2026-01-13',td:'2025-11-23',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:161.45,ss:0},
+{id:'p03',desc:'Didi Taxi Beijing',sd:'2026-01-13',td:'2025-11-25',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:2.66,ss:0},
+{id:'p04',desc:'Tous Les Jours Shanghai',sd:'2026-01-13',td:'2025-11-26',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:6.53,ss:0},
+{id:'p05',desc:'Guangxi Shouzu Xing Shanghai',sd:'2026-01-13',td:'2025-11-27',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:2.85,ss:0},
+{id:'p06',desc:'CR Vanguard Shanghai',sd:'2026-01-13',td:'2025-11-28',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:20.87,ss:0},
+{id:'p07',desc:'Beijing Tianlun Hotel',sd:'2026-01-13',td:'2025-11-29',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:228.25,ss:0},
+{id:'p08',desc:'Dongheng Beijing Hotel',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:596.32,ss:0},
+{id:'p09',desc:'ALP Other Retail Shanghai',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:10.91,ss:0},
+{id:'p10',desc:'Uniqlo Shanghai',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:14.97,ss:0},
+{id:'p11',desc:'ALP Other Retail Shanghai',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:66.17,ss:0},
+{id:'p12',desc:'Weixin Scan QR Shenzhen',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:20.28,ss:0},
+{id:'p13',desc:'Beijingdian Beijing',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:37.72,ss:0},
+{id:'p14',desc:'Didi Taxi Beijing',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:5.83,ss:0},
+{id:'p15',desc:'ALP Supermarkets Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:34.17,ss:0},
+{id:'p16',desc:'ALP Bakeries Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:120.63,ss:0},
+{id:'p17',desc:'Meituan Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:9.27,ss:0},
+{id:'p18',desc:'ALP Other Retail Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:12.50,ss:0},
+{id:'p19',desc:'Meituan Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:15.42,ss:0},
+{id:'p20',desc:'ALP Other Retail Shanghai 2',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:51.14,ss:0},
+{id:'p21',desc:'ALP Supermarkets Shanghai 2',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:12.47,ss:0},
+{id:'p22',desc:'Didi Taxi Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:15.61,ss:0},
+{id:'p23',desc:'Haidilao Shanghai',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:112.23,ss:0},
+{id:'p24',desc:'ALP Supermarkets Shanghai 3',sd:'2026-01-13',td:'2025-12-02',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:1.88,ss:0},
+{id:'p25',desc:'Voyage Coffee Beijing',sd:'2026-01-13',td:'2025-12-03',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:33.75,ss:0},
+{id:'p26',desc:'CardUp - Liberty Insurance',sd:'2026-01-13',td:'2025-12-01',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:249.66,ss:0},
+{id:'p27',desc:'CardUp - HSBC Life Insurance',sd:'2026-01-13',td:'2025-12-04',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:132.34,ss:0},
+{id:'p28',desc:'CardUp - HL Bank Car',sd:'2026-01-13',td:'2025-12-12',who:'joint',cat:'car',bk:'UOB',h:'w',b:'no',amt:1216.51,ss:0},
+{id:'p29',desc:'CardUp - Distinct Creative',sd:'2026-01-13',td:'2025-12-16',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:360.63,ss:0},
+{id:'p30',desc:'CardUp - Playfacto@Ubi',sd:'2026-01-13',td:'2025-12-22',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:594.76,ss:0},
+{id:'p31',desc:'CardUp - Playfacto@Ubi 2',sd:'2026-01-13',td:'2025-12-22',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:186.42,ss:0},
+{id:'p32',desc:'Finest Paya Lebar Qtr',sd:'2026-01-13',td:'2025-11-21',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:5.41,ss:0},
+{id:'p33',desc:'Four Leaves Bishan',sd:'2026-01-13',td:'2025-11-23',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.00,ss:0},
+{id:'p34',desc:'Guardian Junction 8',sd:'2026-01-13',td:'2025-11-23',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:10.60,ss:0},
+{id:'p35',desc:'BreadTalk IHQ',sd:'2026-01-13',td:'2025-12-04',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:16.20,ss:0},
+{id:'p36',desc:'Four Leaves Parkway',sd:'2026-01-13',td:'2025-12-08',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.40,ss:0},
+{id:'p37',desc:'ShopBack GO',sd:'2026-01-13',td:'2025-12-09',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:7.40,ss:0},
+{id:'p38',desc:'Lavender Jewel',sd:'2026-01-13',td:'2025-12-09',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:11.00,ss:0},
+{id:'p39',desc:'Muji Parkway Parade',sd:'2026-01-13',td:'2025-12-13',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:35.10,ss:0},
+{id:'p40',desc:'So Good Bakery Katong',sd:'2026-01-13',td:'2025-12-16',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:14.40,ss:0},
+{id:'p41',desc:'Guardian I12 Katong',sd:'2026-01-13',td:'2025-12-16',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'p42',desc:'Ubi Dental Clinic',sd:'2026-01-13',td:'2025-12-18',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:130.80,ss:0},
+{id:'p43',desc:'GV Plaza Singapura',sd:'2026-01-13',td:'2025-12-19',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:9.50,ss:0},
+{id:'p44',desc:'Toys&#39;R&#39;Us Parkway',sd:'2026-01-13',td:'2025-12-19',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:106.46,ss:0},
+{id:'p45',desc:'Toys&#39;R&#39;Us Parkway 2',sd:'2026-01-13',td:'2025-12-19',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:69.48,ss:0},
+{id:'p46',desc:'Popular Book J8',sd:'2026-01-13',td:'2025-12-21',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:50.00,ss:0},
+{id:'p47',desc:'H&M Singapore',sd:'2026-01-13',td:'2025-12-22',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:31.70,ss:0},
+{id:'p48',desc:'ACX Foodcourt',sd:'2026-01-13',td:'2025-11-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.20,ss:0},
+{id:'p49',desc:'ACX Foodcourt 2',sd:'2026-01-13',td:'2025-11-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:18.90,ss:0},
+{id:'p50',desc:'Trip.com',sd:'2026-01-13',td:'2025-11-25',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:48.10,ss:0},
+{id:'p51',desc:'Trip.com 2',sd:'2026-01-13',td:'2025-11-25',who:'joint',cat:'travel',bk:'UOB',h:'w',b:'no',amt:39.83,ss:0},
+{id:'p52',desc:'FR IHQ First Street',sd:'2026-01-13',td:'2025-12-04',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:47.20,ss:0},
+{id:'p53',desc:'FR IHQ Stall 09',sd:'2026-01-13',td:'2025-12-04',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.80,ss:0},
+{id:'p54',desc:'UOB KrisFlyer Fee',sd:'2026-01-13',td:'2025-12-05',who:'joint',cat:'fees',bk:'UOB',h:'w',b:'no',amt:25.00,ss:0},
+{id:'p55',desc:'Song Fa NPC',sd:'2026-01-13',td:'2025-12-07',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:120.98,ss:0},
+{id:'p56',desc:'Guzman y Gomez',sd:'2026-01-13',td:'2025-12-09',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:23.20,ss:0},
+{id:'p57',desc:'McDonald&#39;s',sd:'2026-01-13',td:'2025-12-11',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.55,ss:0},
+{id:'p58',desc:'Omote Thomson Plaza',sd:'2026-01-13',td:'2025-12-14',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:145.08,ss:0},
+{id:'p59',desc:'SG Hawker I12 Katong',sd:'2026-01-13',td:'2025-12-16',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:5.50,ss:0},
+{id:'p60',desc:'SG Hawker I12 Katong 2',sd:'2026-01-13',td:'2025-12-16',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'p61',desc:'HK150 Connoisseur',sd:'2026-01-13',td:'2025-12-18',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:20.92,ss:0},
+{id:'p62',desc:'Sen-Ryo ION',sd:'2026-01-13',td:'2025-12-19',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:100.00,ss:0},
+{id:'p63',desc:'HK150 Connoisseur 2',sd:'2026-01-13',td:'2025-12-20',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:43.60,ss:0},
+{id:'p64',desc:'Boon Tong Kee AMK',sd:'2026-01-13',td:'2025-12-21',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:140.25,ss:0},
+{id:'p65',desc:'Bedrock Bar & Grill',sd:'2026-01-13',td:'2025-12-22',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:102.02,ss:0},
+{id:'p66',desc:'Bus/MRT',sd:'2026-01-13',td:'2025-11-19',who:'me',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.54,ss:0},
+{id:'p67',desc:'KrisPay GV',sd:'2026-01-13',td:'2025-12-17',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+{id:'p68',desc:'KrisPay GV 2',sd:'2026-01-13',td:'2025-12-17',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+{id:'p69',desc:'KrisPay GV 3',sd:'2026-01-13',td:'2025-12-17',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+{id:'p70',desc:'KrisPay GV 4',sd:'2026-01-13',td:'2025-12-17',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+{id:'p71',desc:'KrisPay GV 5',sd:'2026-01-13',td:'2025-12-17',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+// ── Amex Jan stmt → sd=2026-02-23 → FEBRUARY payment ──
+{id:'ax01',desc:'Helloride',sd:'2026-02-23',td:'2026-01-01',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:8.00,ss:0},
+{id:'ax02',desc:'GrabTaxi',sd:'2026-02-23',td:'2026-01-04',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:27.00,ss:0},
+{id:'ax03',desc:'GrabTaxi',sd:'2026-02-23',td:'2026-01-07',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:10.00,ss:0},
+// ── UOB Feb stmt sd=2026-02-13 ──
+{id:'q01',desc:'CardUp - AlphaOmega Math',sd:'2026-02-13',td:'2025-12-30',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:183.24,ss:0},
+{id:'q02',desc:'CardUp - HSBC Life Insurance',sd:'2026-02-13',td:'2025-12-31',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:827.63,ss:0},
+{id:'q03',desc:'CardUp - The Gentle Art',sd:'2026-02-13',td:'2026-01-02',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:671.32,ss:0},
+{id:'q04',desc:'CardUp - Manulife Insurance',sd:'2026-02-13',td:'2026-01-06',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:2702.29,ss:0},
+{id:'q05',desc:'CardUp - Manulife Insurance 2',sd:'2026-02-13',td:'2026-01-06',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:1386.72,ss:0},
+{id:'q06',desc:'CardUp - HL Bank Car',sd:'2026-02-13',td:'2026-01-13',who:'joint',cat:'car',bk:'UOB',h:'w',b:'no',amt:1216.51,ss:0},
+{id:'q07',desc:'CardUp - Playfacto@Ubi',sd:'2026-02-13',td:'2026-01-21',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:1176.20,ss:0},
+{id:'q08',desc:'CardUp - Playfacto@Ubi 2',sd:'2026-02-13',td:'2026-01-21',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:699.06,ss:0},
+{id:'q09',desc:'CardUp - Property Tax (ours)',sd:'2026-02-13',td:'2026-01-21',who:'joint',cat:'tax',bk:'UOB',h:'w',b:'no',amt:249.21,ss:0},
+{id:'q10',desc:'CardUp - Property Tax (Mum)',sd:'2026-02-13',td:'2026-01-21',who:'me',cat:'tax',bk:'UOB',h:'w',b:'mum',amt:199.37,ss:0},
+{id:'q11',desc:'Arabica Singapore',sd:'2026-02-13',td:'2025-12-23',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:13.80,ss:0},
+{id:'q12',desc:'Hypha Kiosk',sd:'2026-02-13',td:'2025-12-24',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:8.00,ss:0},
+{id:'q13',desc:'Hypha Kiosk 2',sd:'2026-02-13',td:'2025-12-24',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.60,ss:0},
+{id:'q14',desc:'Beaver Energy',sd:'2026-02-13',td:'2025-12-24',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'q15',desc:'Kcuts Singapore',sd:'2026-02-13',td:'2025-12-25',who:'him',cat:'health',bk:'UOB',h:'w',b:'no',amt:12.00,ss:0},
+{id:'q16',desc:'Sukiya @ Kinex',sd:'2026-02-13',td:'2025-12-25',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:20.70,ss:0},
+{id:'q17',desc:'Compound Coffee Co.',sd:'2026-02-13',td:'2025-12-26',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:13.50,ss:0},
+{id:'q18',desc:'Scoop Wholefoods',sd:'2026-02-13',td:'2025-12-26',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:55.20,ss:0},
+{id:'q19',desc:'Ubi Dental Clinic',sd:'2026-02-13',td:'2025-12-26',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:109.00,ss:0},
+{id:'q20',desc:'FairPrice Finest Junc',sd:'2026-02-13',td:'2025-12-28',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:24.19,ss:0},
+{id:'q21',desc:'FP Xtra Parkway Parade',sd:'2026-02-13',td:'2026-01-02',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:20.23,ss:0},
+{id:'q22',desc:'ShopBack Birkenstock',sd:'2026-02-13',td:'2026-01-03',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:169.00,ss:0},
+{id:'q23',desc:'ShopBack Birkenstock 2',sd:'2026-02-13',td:'2026-01-03',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:55.90,ss:0},
+{id:'q24',desc:'ANT Pawa Bakery',sd:'2026-02-13',td:'2026-01-03',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:11.52,ss:0},
+{id:'q25',desc:'FairPrice Finest Junc 2',sd:'2026-02-13',td:'2026-01-04',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:5.24,ss:0},
+{id:'q26',desc:'Hypha Kiosk 3',sd:'2026-02-13',td:'2026-01-05',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.60,ss:0},
+{id:'q27',desc:'Hypha Kiosk 4',sd:'2026-02-13',td:'2026-01-05',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:11.20,ss:0},
+{id:'q28',desc:'Guardian Woodleigh',sd:'2026-02-13',td:'2026-01-05',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:10.00,ss:0},
+{id:'q29',desc:'FairPrice Finest Woodleigh',sd:'2026-02-13',td:'2026-01-05',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:6.50,ss:0},
+{id:'q30',desc:'Giant Super Ubi',sd:'2026-02-13',td:'2026-01-06',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:7.45,ss:0},
+{id:'q31',desc:'Golden Wok Singapore',sd:'2026-02-13',td:'2026-01-07',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:11.10,ss:0},
+{id:'q32',desc:'McDonald&#39;s',sd:'2026-02-13',td:'2026-01-07',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:14.60,ss:0},
+{id:'q33',desc:'Bus/MRT',sd:'2026-02-13',td:'2026-01-07',who:'me',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.72,ss:0},
+{id:'q34',desc:'Bus/MRT 2',sd:'2026-02-13',td:'2026-01-08',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'q35',desc:'FP Xtra Parkway Parade 2',sd:'2026-02-13',td:'2026-01-09',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:6.13,ss:0},
+{id:'q36',desc:'Net iClaw Taiwan',sd:'2026-02-13',td:'2026-01-10',who:'joint',cat:'other',bk:'UOB',h:'w',b:'no',amt:10.00,ss:0},
+{id:'q37',desc:'FP Xtra Parkway Parade 3',sd:'2026-02-13',td:'2026-01-12',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:7.50,ss:0},
+{id:'q38',desc:'Bus/MRT 3',sd:'2026-02-13',td:'2026-01-14',who:'me',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.72,ss:0},
+{id:'q39',desc:'Bus/MRT 4',sd:'2026-02-13',td:'2026-01-15',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.72,ss:0},
+{id:'q40',desc:'Bus/MRT 5',sd:'2026-02-13',td:'2026-01-15',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'q41',desc:'ShopBack Popular BB',sd:'2026-02-13',td:'2026-01-17',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:29.48,ss:0},
+{id:'q42',desc:'Giant Super Ubi 2',sd:'2026-02-13',td:'2026-01-19',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:11.90,ss:0},
+{id:'q43',desc:'Four Leaves Parkway',sd:'2026-02-13',td:'2026-01-19',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:8.30,ss:0},
+{id:'q44',desc:'FP Xtra Parkway Parade 4',sd:'2026-02-13',td:'2026-01-19',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:51.83,ss:0},
+{id:'q45',desc:'LeShrimp T3',sd:'2026-02-13',td:'2026-01-10',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:70.98,ss:0},
+{id:'q46',desc:'Mister Donut Parkway',sd:'2026-02-13',td:'2026-01-12',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:15.00,ss:0},
+{id:'q47',desc:'East Treasure Prawn Noodles',sd:'2026-02-13',td:'2026-01-17',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:17.00,ss:0},
+{id:'q48',desc:'Mui Kee SG',sd:'2026-02-13',td:'2026-01-17',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:96.04,ss:0},
+{id:'q49',desc:'Twyst.sg',sd:'2026-02-13',td:'2026-01-21',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.90,ss:0},
+{id:'q50',desc:'Omega Pork Noodles',sd:'2026-02-13',td:'2025-12-27',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:48.95,ss:0},
+{id:'q51',desc:'KS Concept Pte Ltd',sd:'2026-02-13',td:'2025-12-28',who:'him',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:119.90,ss:0},
+{id:'q52',desc:'Mister Donut Junction',sd:'2026-02-13',td:'2025-12-28',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.00,ss:0},
+{id:'q53',desc:'Musketeers Coffee',sd:'2026-02-13',td:'2025-12-29',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'q54',desc:'Bakery Brera',sd:'2026-02-13',td:'2025-12-29',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:15.90,ss:0},
+{id:'q55',desc:'Net CFP Global',sd:'2026-02-13',td:'2025-12-30',who:'joint',cat:'other',bk:'UOB',h:'w',b:'no',amt:73.61,ss:0},
+{id:'q56',desc:'3 Mins Coffee',sd:'2026-02-13',td:'2025-12-30',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:7.50,ss:0},
+{id:'q57',desc:'FairPrice Finest 100AM',sd:'2026-02-13',td:'2025-12-30',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:19.85,ss:0},
+{id:'q58',desc:'NTUC FP Tanjong Pagar',sd:'2026-02-13',td:'2025-12-30',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:14.80,ss:0},
+{id:'q59',desc:'Bus/MRT 6',sd:'2026-02-13',td:'2026-01-06',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'q60',desc:'KrisPay Korio',sd:'2026-02-13',td:'2026-01-15',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:18.00,ss:0},
+// ── Amex Feb stmt → sd=2026-03-23 → MARCH payment ──
+{id:'ax00',desc:'Amex cashback credit',sd:'2026-03-23',td:'2026-02-23',who:'me',cat:'fees',bk:'Amex',h:'w',b:'no',amt:-3.13,ss:0},
+{id:'ax04',desc:'Fruits Vending',sd:'2026-03-23',td:'2026-01-24',who:'me',cat:'groceries',bk:'Amex',h:'w',b:'no',amt:2.00,ss:0},
+{id:'ax05',desc:'Fruits Vending 2',sd:'2026-03-23',td:'2026-01-24',who:'me',cat:'groceries',bk:'Amex',h:'w',b:'no',amt:2.00,ss:0},
+{id:'ax06',desc:'Fruits Vending 3',sd:'2026-03-23',td:'2026-01-24',who:'me',cat:'groceries',bk:'Amex',h:'w',b:'no',amt:2.00,ss:0},
+{id:'ax07',desc:'Fruits Vending 4',sd:'2026-03-23',td:'2026-01-24',who:'me',cat:'groceries',bk:'Amex',h:'w',b:'no',amt:2.00,ss:0},
+{id:'ax08',desc:'HCL Education Centre',sd:'2026-03-23',td:'2026-01-25',who:'me',cat:'education',bk:'Amex',h:'w',b:'no',amt:1308.00,ss:0},
+{id:'ax09',desc:'SP Digital Pte Ltd',sd:'2026-03-23',td:'2026-01-27',who:'me',cat:'utilities',bk:'Amex',h:'w',b:'siblings',amt:200.17,ss:0},
+{id:'ax10',desc:'GrabTaxi',sd:'2026-03-23',td:'2026-02-01',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:40.00,ss:0},
+{id:'ax11',desc:'GrabTaxi 2',sd:'2026-03-23',td:'2026-02-02',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:10.00,ss:0},
+{id:'ax12',desc:'GrabTaxi 3',sd:'2026-03-23',td:'2026-02-05',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:185.00,ss:0},
+{id:'ax13',desc:'Helloride',sd:'2026-03-23',td:'2026-02-11',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:1.00,ss:0},
+{id:'ax14',desc:'Grab GPC',sd:'2026-03-23',td:'2026-02-16',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:11.00,ss:0},
+{id:'ax15',desc:'GrabTaxi 4',sd:'2026-03-23',td:'2026-02-23',who:'me',cat:'transport',bk:'Amex',h:'w',b:'no',amt:10.00,ss:0},
+// ── UOB Mar stmt sd=2026-03-13 ──
+{id:'r01',desc:'IJOOZ AI',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:2.00,ss:0},
+{id:'r02',desc:'CardUp - HSBC Life Ins',sd:'2026-03-13',td:'2026-02-03',who:'joint',cat:'insurance',bk:'UOB',h:'w',b:'no',amt:827.63,ss:0},
+{id:'r03',desc:'CardUp - Swan Aquatic',sd:'2026-03-13',td:'2026-02-06',who:'joint',cat:'education',bk:'UOB',h:'w',b:'no',amt:335.94,ss:0},
+{id:'r04',desc:'CardUp - HL Bank Car',sd:'2026-03-13',td:'2026-02-11',who:'joint',cat:'car',bk:'UOB',h:'w',b:'no',amt:1226.07,ss:0},
+{id:'r05',desc:'Bus/MRT',sd:'2026-03-13',td:'2026-01-20',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'r06',desc:'Bus/MRT 2',sd:'2026-03-13',td:'2026-01-21',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.72,ss:0},
+{id:'r07',desc:'Bus/MRT 3',sd:'2026-03-13',td:'2026-01-21',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'r08',desc:'ShopBack Food Republic',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.20,ss:0},
+{id:'r09',desc:'ShopBack Food Republic 2',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:20.80,ss:0},
+{id:'r10',desc:'KFC PLQ',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:5.75,ss:0},
+{id:'r11',desc:'Mister Donut Junc 8',sd:'2026-03-13',td:'2026-01-25',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:15.00,ss:0},
+{id:'r12',desc:'Fairprice Finest Junc',sd:'2026-03-13',td:'2026-01-25',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:56.22,ss:0},
+{id:'r13',desc:'So Good Bakery',sd:'2026-03-13',td:'2026-01-26',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:14.20,ss:0},
+{id:'r14',desc:'Bus/MRT 4',sd:'2026-03-13',td:'2026-01-26',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'r15',desc:'Bus/MRT 5',sd:'2026-03-13',td:'2026-01-27',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:2.98,ss:0},
+{id:'r16',desc:'Bus/MRT 6',sd:'2026-03-13',td:'2026-01-27',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'r17',desc:'Toast Box Marina',sd:'2026-03-13',td:'2026-01-28',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:15.40,ss:0},
+{id:'r18',desc:'NTUC FP Lengkong',sd:'2026-03-13',td:'2026-01-28',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:7.80,ss:0},
+{id:'r19',desc:'Bus/MRT 7',sd:'2026-03-13',td:'2026-01-28',who:'joint',cat:'transport',bk:'UOB',h:'w',b:'no',amt:3.72,ss:0},
+{id:'r20',desc:'Bus/MRT Wed',sd:'2026-03-13',td:'2026-01-29',who:'me',cat:'transport',bk:'UOB',h:'w',b:'no',amt:1.28,ss:0},
+{id:'r21',desc:'FP Xtra Parkway',sd:'2026-03-13',td:'2026-01-30',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:47.37,ss:0},
+{id:'r22',desc:'ShopBack Hawkers St',sd:'2026-03-13',td:'2026-01-31',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.50,ss:0},
+{id:'r23',desc:'ShopBack Hawkers St 2',sd:'2026-03-13',td:'2026-01-31',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.50,ss:0},
+{id:'r24',desc:'Ya Kun Kaya Toast',sd:'2026-03-13',td:'2026-01-31',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.80,ss:0},
+{id:'r25',desc:'ShopBack GO',sd:'2026-03-13',td:'2026-01-31',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:9.80,ss:0},
+{id:'r26',desc:'Our Second Nature',sd:'2026-03-13',td:'2026-01-31',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:118.00,ss:0},
+{id:'r27',desc:'Hypha Kiosk',sd:'2026-03-13',td:'2026-02-02',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.60,ss:0},
+{id:'r28',desc:'Hypha Kiosk 2',sd:'2026-03-13',td:'2026-02-02',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:8.00,ss:0},
+{id:'r29',desc:'Beaver Energy',sd:'2026-03-13',td:'2026-02-02',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'r30',desc:'ShopBack GO 2',sd:'2026-03-13',td:'2026-02-02',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:6.80,ss:0},
+{id:'r31',desc:'Barcook PLQ',sd:'2026-03-13',td:'2026-02-03',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:8.30,ss:0},
+{id:'r32',desc:'KOI Wed',sd:'2026-03-13',td:'2026-02-04',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.30,ss:0},
+{id:'r33',desc:'ShopBack GO 3',sd:'2026-03-13',td:'2026-02-04',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:8.10,ss:0},
+{id:'r34',desc:'BINGO Singapore',sd:'2026-03-13',td:'2026-02-06',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:30.30,ss:0},
+{id:'r35',desc:'BTV Group NAC',sd:'2026-03-13',td:'2026-02-07',who:'joint',cat:'entertainment',bk:'UOB',h:'w',b:'no',amt:69.00,ss:0},
+{id:'r36',desc:'Mister Donut Thomson',sd:'2026-03-13',td:'2026-02-08',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:14.50,ss:0},
+{id:'r37',desc:'Hockhua Tonic',sd:'2026-03-13',td:'2026-02-09',who:'joint',cat:'health',bk:'UOB',h:'w',b:'no',amt:11.00,ss:0},
+{id:'r38',desc:'Scoop Wholefoods',sd:'2026-03-13',td:'2026-02-13',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:101.20,ss:0},
+{id:'r39',desc:'Clippers Tampines',sd:'2026-03-13',td:'2026-02-14',who:'him',cat:'health',bk:'UOB',h:'w',b:'no',amt:15.00,ss:0},
+{id:'r40',desc:'NTUC FP Tampines',sd:'2026-03-13',td:'2026-02-14',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:7.77,ss:0},
+{id:'r41',desc:'NTUC FP Tampines 2',sd:'2026-03-13',td:'2026-02-14',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:39.55,ss:0},
+{id:'r42',desc:'Fairprice Finest Junc 2',sd:'2026-03-13',td:'2026-02-15',who:'joint',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:41.18,ss:0},
+{id:'r43',desc:'Beaver Energy 2',sd:'2026-03-13',td:'2026-02-16',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:6.00,ss:0},
+{id:'r44',desc:'FP Xtra Wed',sd:'2026-03-13',td:'2026-02-19',who:'me',cat:'groceries',bk:'UOB',h:'w',b:'no',amt:57.65,ss:0},
+{id:'r45',desc:'Sukiya PLQ',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:25.20,ss:0},
+{id:'r46',desc:'Sukiya PLQ 2',sd:'2026-03-13',td:'2026-01-24',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:23.30,ss:0},
+{id:'r47',desc:'One Fattened Calf',sd:'2026-03-13',td:'2026-01-25',who:'him',cat:'food',bk:'UOB',h:'w',b:'other',amt:100.50,ss:0},
+{id:'r48',desc:'The Coconut Club',sd:'2026-03-13',td:'2026-01-25',who:'him',cat:'food',bk:'UOB',h:'w',b:'other',amt:22.89,ss:0},
+{id:'r49',desc:'Tori-Q Parkway',sd:'2026-03-13',td:'2026-01-30',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.20,ss:0},
+{id:'r50',desc:'Toast Box MBS',sd:'2026-03-13',td:'2026-02-06',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.80,ss:0},
+{id:'r51',desc:'Kinnari Thai',sd:'2026-03-13',td:'2026-02-06',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:48.40,ss:0},
+{id:'r52',desc:'Rasapura Masters',sd:'2026-03-13',td:'2026-02-06',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:18.80,ss:0},
+{id:'r53',desc:'HK150 Connoisseur',sd:'2026-03-13',td:'2026-02-06',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:47.96,ss:0},
+{id:'r54',desc:'ShopBack Hawkers St 3',sd:'2026-03-13',td:'2026-02-07',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:11.50,ss:0},
+{id:'r55',desc:'ShopBack Hawkers St 4',sd:'2026-03-13',td:'2026-02-07',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:20.60,ss:0},
+{id:'r56',desc:'Andes @ VBP',sd:'2026-03-13',td:'2026-02-07',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:48.70,ss:0},
+{id:'r57',desc:'ShopBack Sushiro',sd:'2026-03-13',td:'2026-02-08',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:90.04,ss:0},
+{id:'r58',desc:'Tori-Q Parkway 2',sd:'2026-03-13',td:'2026-02-13',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.70,ss:0},
+{id:'r59',desc:'FR IHQ Seoul Taste',sd:'2026-03-13',td:'2026-02-14',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:9.90,ss:0},
+{id:'r60',desc:'FR IHQ First St',sd:'2026-03-13',td:'2026-02-14',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:30.40,ss:0},
+{id:'r61',desc:'FR IHQ First St 2',sd:'2026-03-13',td:'2026-02-14',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:12.90,ss:0},
+{id:'r62',desc:'Sushiro Singapore',sd:'2026-03-13',td:'2026-02-14',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:107.19,ss:0},
+{id:'r63',desc:'Chick-fil-A Wed',sd:'2026-03-13',td:'2026-02-19',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:35.00,ss:0},
+{id:'r64',desc:'Mister Donut Wed',sd:'2026-03-13',td:'2026-02-19',who:'me',cat:'food',bk:'UOB',h:'w',b:'no',amt:15.00,ss:0},
+{id:'r65',desc:'Mother Dough',sd:'2026-03-13',td:'2026-02-20',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:26.00,ss:0},
+{id:'r66',desc:'ShopBack Hawkers St 5',sd:'2026-03-13',td:'2026-02-21',who:'him',cat:'food',bk:'UOB',h:'w',b:'no',amt:10.50,ss:0},
+{id:'r67',desc:'LMBM CK Tang',sd:'2026-03-13',td:'2026-02-21',who:'joint',cat:'shopping',bk:'UOB',h:'w',b:'no',amt:38.73,ss:0},
+// ── Citi Mar stmt sd=2026-03-16 ──
+{id:'h01',desc:'Kopitiam FP App',sd:'2026-03-16',td:'2026-01-19',who:'him',cat:'food',bk:'Citi',h:'h',b:'no',amt:15.03,ss:0},
+{id:'h02',desc:'Shopee Singapore',sd:'2026-03-16',td:'2026-01-28',who:'him',cat:'shopping',bk:'Citi',h:'h',b:'no',amt:51.28,ss:0},
+{id:'h03',desc:'Julia Gabriel',sd:'2026-03-16',td:'2026-01-30',who:'joint',cat:'education',bk:'Citi',h:'h',b:'no',amt:856.09,ss:0},
+{id:'h04',desc:'Shopee Singapore 2',sd:'2026-03-16',td:'2026-02-02',who:'him',cat:'shopping',bk:'Citi',h:'h',b:'no',amt:25.50,ss:0},
+{id:'h05',desc:'Spotify',sd:'2026-03-16',td:'2026-02-05',who:'him',cat:'entertainment',bk:'Citi',h:'h',b:'no',amt:20.98,ss:0},
+{id:'h06',desc:'CCY Fee',sd:'2026-03-16',td:'2026-02-06',who:'him',cat:'fees',bk:'Citi',h:'h',b:'no',amt:0.20,ss:0},
+{id:'h07',desc:'ZYM Mobile',sd:'2026-03-16',td:'2026-02-10',who:'him',cat:'health',bk:'Citi',h:'h',b:'no',amt:15.10,ss:0},
+{id:'h08',desc:'GOGO Energy',sd:'2026-03-16',td:'2026-01-26',who:'him',cat:'car',bk:'Citi',h:'h',b:'no',amt:59.84,ss:0},
+{id:'h09',desc:'Son&#39;s BJJ',sd:'2026-03-16',td:'2026-01-26',who:'joint',cat:'education',bk:'Citi',h:'h',b:'no',amt:98.21,ss:0},
+{id:'h10',desc:'GOGO Energy 2',sd:'2026-03-16',td:'2026-01-27',who:'him',cat:'car',bk:'Citi',h:'h',b:'no',amt:146.07,ss:0},
+{id:'h11',desc:'GOGO Energy 3',sd:'2026-03-16',td:'2026-02-03',who:'him',cat:'car',bk:'Citi',h:'h',b:'no',amt:76.78,ss:0},
+{id:'h12',desc:'NTUC FairPrice',sd:'2026-03-16',td:'2026-02-03',who:'him',cat:'groceries',bk:'Citi',h:'h',b:'no',amt:9.09,ss:0},
+{id:'h13',desc:'Kopitiam FP App 2',sd:'2026-03-16',td:'2026-02-04',who:'him',cat:'food',bk:'Citi',h:'h',b:'no',amt:7.65,ss:0},
+{id:'h14',desc:'Carhartt WIP',sd:'2026-03-16',td:'2026-02-07',who:'him',cat:'shopping',bk:'Citi',h:'h',b:'no',amt:75.00,ss:0},
+// ── DBS Mar stmt sd=2026-03-20 ──
+{id:'h15',desc:'Chagee',sd:'2026-03-20',td:'2026-01-25',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:6.00,ss:0},
+{id:'h16',desc:'Chagee 2',sd:'2026-03-20',td:'2026-01-30',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:6.00,ss:0},
+{id:'h17',desc:'Guardian',sd:'2026-03-20',td:'2026-02-01',who:'him',cat:'health',bk:'DBS',h:'h',b:'no',amt:91.70,ss:0},
+{id:'h18',desc:'Cold Storage',sd:'2026-03-20',td:'2026-02-01',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:67.35,ss:0},
+{id:'h19',desc:'Giant Super Ubi',sd:'2026-03-20',td:'2026-02-02',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:8.65,ss:0},
+{id:'h20',desc:'Bus/MRT',sd:'2026-03-20',td:'2026-02-02',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:1.28,ss:0},
+{id:'h21',desc:'Giant Super Ubi 2',sd:'2026-03-20',td:'2026-02-03',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:28.05,ss:0},
+{id:'h22',desc:'Bus/MRT 2',sd:'2026-03-20',td:'2026-02-04',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:3.72,ss:0},
+{id:'h23',desc:'Bus/MRT 3',sd:'2026-03-20',td:'2026-02-05',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:6.28,ss:0},
+{id:'h24',desc:'Bus/MRT 4',sd:'2026-03-20',td:'2026-02-06',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:2.56,ss:0},
+{id:'h25',desc:'Bus/MRT 5',sd:'2026-03-20',td:'2026-02-06',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:3.64,ss:0},
+{id:'h26',desc:'7-Eleven',sd:'2026-03-20',td:'2026-02-07',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:3.90,ss:0},
+{id:'h27',desc:'Giant Super Ubi 3',sd:'2026-03-20',td:'2026-02-08',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:96.26,ss:0},
+{id:'h28',desc:'Chagee 3',sd:'2026-03-20',td:'2026-02-08',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:6.00,ss:0},
+{id:'h29',desc:'CS Fresh Lentor',sd:'2026-03-20',td:'2026-02-08',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:131.40,ss:0},
+{id:'h30',desc:'Bus/MRT 6',sd:'2026-03-20',td:'2026-02-09',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:1.28,ss:0},
+{id:'h31',desc:'Giant Super Ubi 4',sd:'2026-03-20',td:'2026-02-10',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:41.61,ss:0},
+{id:'h32',desc:'Bus/MRT 7',sd:'2026-03-20',td:'2026-02-10',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:1.28,ss:0},
+{id:'h33',desc:'Cold Storage PP',sd:'2026-03-20',td:'2026-02-13',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:18.50,ss:0},
+{id:'h34',desc:'Singtel',sd:'2026-03-20',td:'2026-02-13',who:'him',cat:'utilities',bk:'DBS',h:'h',b:'no',amt:79.00,ss:0},
+{id:'h35',desc:'Singtel 2',sd:'2026-03-20',td:'2026-02-13',who:'him',cat:'utilities',bk:'DBS',h:'h',b:'no',amt:170.00,ss:0},
+{id:'h36',desc:'Singtel 3',sd:'2026-03-20',td:'2026-02-13',who:'him',cat:'utilities',bk:'DBS',h:'h',b:'no',amt:12.00,ss:0},
+{id:'h37',desc:'Chagee 4',sd:'2026-03-20',td:'2026-02-14',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:6.20,ss:0},
+{id:'h38',desc:'Giant Super Ubi 5',sd:'2026-03-20',td:'2026-02-15',who:'joint',cat:'groceries',bk:'DBS',h:'h',b:'no',amt:21.80,ss:0},
+{id:'h39',desc:'Chagee 5',sd:'2026-03-20',td:'2026-02-15',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:16.80,ss:0},
+{id:'h40',desc:'Chagee 6',sd:'2026-03-20',td:'2026-02-22',who:'him',cat:'food',bk:'DBS',h:'h',b:'no',amt:3.05,ss:0},
+{id:'h41',desc:'Kcuts',sd:'2026-03-20',td:'2026-01-24',who:'him',cat:'health',bk:'DBS',h:'h',b:'no',amt:28.00,ss:0},
+{id:'h42',desc:'Julia Gabriel 2',sd:'2026-03-20',td:'2026-01-30',who:'joint',cat:'education',bk:'DBS',h:'h',b:'no',amt:681.13,ss:0},
+{id:'h43',desc:'Julia Gabriel 3',sd:'2026-03-20',td:'2026-02-03',who:'joint',cat:'education',bk:'DBS',h:'h',b:'no',amt:856.09,ss:0},
+{id:'h44',desc:'SISTIC',sd:'2026-03-20',td:'2026-02-08',who:'joint',cat:'entertainment',bk:'DBS',h:'h',b:'no',amt:42.20,ss:0},
+{id:'h45',desc:'Shopee 2',sd:'2026-03-20',td:'2026-02-08',who:'him',cat:'shopping',bk:'DBS',h:'h',b:'no',amt:49.59,ss:0},
+{id:'h46',desc:'Netflix',sd:'2026-03-20',td:'2026-02-14',who:'joint',cat:'entertainment',bk:'DBS',h:'h',b:'no',amt:45.94,ss:0},
+{id:'h47',desc:'Apple.com',sd:'2026-03-20',td:'2026-02-19',who:'him',cat:'other',bk:'DBS',h:'h',b:'no',amt:3.01,ss:0},
+{id:'h48',desc:'AXS Drive Kinex',sd:'2026-03-20',td:'2026-01-25',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:3.30,ss:0},
+{id:'h49',desc:'NETS Top Up',sd:'2026-03-20',td:'2026-01-27',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:50.00,ss:0},
+{id:'h50',desc:'AXS Drive Kinex 2',sd:'2026-03-20',td:'2026-02-01',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:3.30,ss:0},
+{id:'h51',desc:'NETS Top Up 2',sd:'2026-03-20',td:'2026-02-05',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:50.00,ss:0},
+{id:'h52',desc:'AXS Drive Far East',sd:'2026-03-20',td:'2026-02-07',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:10.36,ss:0},
+{id:'h53',desc:'AXS Drive Kinex 3',sd:'2026-03-20',td:'2026-02-08',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:3.80,ss:0},
+{id:'h54',desc:'AXS Drive Far East 2',sd:'2026-03-20',td:'2026-02-14',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:10.36,ss:0},
+{id:'h55',desc:'AXS Drive Kinex 4',sd:'2026-03-20',td:'2026-02-15',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:2.30,ss:0},
+{id:'h56',desc:'NETS Top Up 3',sd:'2026-03-20',td:'2026-02-16',who:'him',cat:'transport',bk:'DBS',h:'h',b:'no',amt:50.00,ss:0},
+{id:'h57',desc:'AXS Drive Far East 3',sd:'2026-03-20',td:'2026-02-21',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:10.36,ss:0},
+{id:'h58',desc:'AXS Drive Kinex 5',sd:'2026-03-20',td:'2026-02-22',who:'him',cat:'car',bk:'DBS',h:'h',b:'no',amt:3.80,ss:0},
 ];
-PL.forEach(e=>{if(!e.amount&&AMOUNTS[e.id])e.amount=AMOUNTS[e.id];});
 
-function loadState(){try{const s=localStorage.getItem('sgpwa_state');if(s)return JSON.parse(s);}catch(e){}return null;}
-let state=loadState()||{
-  expenses:PL,income:{'2026-01':{me:0,him:0,other:0}},assets:[],liabilities:[],
-  cpf:{myOA:138553.94,mySA:131651.13,myMA:79000,myCPFIS:0,hisOA:148462.25,hisSA:174413,hisMA:79000,hisCPFIS:0}
-};
-let currentMonth='2026-01';
-if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
-function saveState(){try{localStorage.setItem('sgpwa_state',JSON.stringify(state));}catch(e){}}
-function expMonth(e){return(e.stmtDate||e.txnDate||'').slice(0,7);}
-function getMonthExp(){return state.expenses.filter(e=>expMonth(e)===currentMonth);}
+// ── HSBC Jan stmt sd=2026-01-02 → January ──
+{id:'hs01',desc:'Atome - Trading Course',sd:'2026-01-02',td:'2025-12-07',who:'me',cat:'education',bk:'HSBC',h:'w',b:'no',amt:946.00,ss:0},
+{id:'hs02',desc:'Grab',sd:'2026-01-02',td:'2025-12-12',who:'me',cat:'transport',bk:'HSBC',h:'w',b:'no',amt:25.40,ss:0},
+{id:'hs03',desc:'Grab',sd:'2026-01-02',td:'2025-12-12',who:'me',cat:'transport',bk:'HSBC',h:'w',b:'no',amt:42.30,ss:0},
+{id:'hs04',desc:'Atlaskind.com',sd:'2026-01-02',td:'2025-12-21',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:505.00,ss:0},
+{id:'hs05',desc:'Grab',sd:'2026-01-02',td:'2025-12-25',who:'me',cat:'transport',bk:'HSBC',h:'w',b:'no',amt:7.65,ss:0},
+// ── HSBC Feb stmt sd=2026-02-02 → February ──
+{id:'hs06',desc:'Atome - Trading Course',sd:'2026-02-02',td:'2026-01-04',who:'me',cat:'education',bk:'HSBC',h:'w',b:'no',amt:946.00,ss:0},
+{id:'hs07',desc:'Atome - Decathlon',sd:'2026-02-02',td:'2026-01-20',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:51.57,ss:0},
+{id:'hs08',desc:'Julia Gabriel Education',sd:'2026-02-02',td:'2026-01-30',who:'joint',cat:'education',bk:'HSBC',h:'w',b:'no',amt:681.13,ss:0},
+{id:'hs09',desc:'Grab',sd:'2026-02-02',td:'2026-02-01',who:'me',cat:'transport',bk:'HSBC',h:'w',b:'no',amt:16.92,ss:0},
+// ── HSBC Mar stmt sd=2026-03-02 → March ──
+{id:'hs10',desc:'Atome - Trading Course',sd:'2026-03-02',td:'2026-02-04',who:'me',cat:'education',bk:'HSBC',h:'w',b:'no',amt:946.00,ss:0},
+{id:'hs11',desc:'Grab',sd:'2026-03-02',td:'2026-03-01',who:'me',cat:'transport',bk:'HSBC',h:'w',b:'no',amt:23.30,ss:0},
 
-function switchTab(name,el){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  el.classList.add('active');
-  if(name==='categories')renderCategories();
-  if(name==='ledger'){populateLedgerFilters();renderLedger();}
-  if(name==='networth')renderNetWorth();
-  window.scrollTo(0,0);
+
+// ── Taobao (HSBC Jan stmt → January) ──
+{id:'hs12',desc:'Taobao',sd:'2026-01-02',td:'2025-11-29',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:-68.71,ss:0},
+{id:'hs13',desc:'Taobao',sd:'2026-01-02',td:'2025-12-02',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:314.51,ss:0},
+{id:'hs14',desc:'Taobao',sd:'2026-01-02',td:'2025-12-02',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:-104.55,ss:0},
+{id:'hs15',desc:'Taobao',sd:'2026-01-02',td:'2025-12-02',who:'joint',cat:'shopping',bk:'HSBC',h:'w',b:'no',amt:-3.44,ss:0},
+const DCPF={myOA:138553.94,mySA:131651.13,myMA:79000,myCPFIS:0,hisOA:148462.25,hisSA:174413,hisMA:79000,hisCPFIS:0};
+const DINC={'2026-01':{me:9600,him:5531,other:0},'2026-02':{me:9600,him:5531,other:0},'2026-03':{me:9600,him:5531,other:0}};
+
+const SCHEMA=28;
+function buildFresh(){
+  return{v:SCHEMA,expenses:SEED.map(s=>Object.assign({},s)),income:JSON.parse(JSON.stringify(DINC)),
+    assets:[{id:'a1',name:'HDB flat (Ubi Ave 1)',value:348530.13}],
+    liabilities:[{id:'l1',name:'HDB loan',value:348530.13},{id:'l2',name:'Car loan',value:39600}],
+    cpf:Object.assign({},DCPF),settled:{}};
+}
+function initState(){
+  // Try to load saved state — only accept if it has enough transactions (>50)
+  // so a blank/corrupt localStorage doesn't override the seed
+  for(const k of['sg_finance_v1','sg11_state']){
+    try{
+      const r=localStorage.getItem(k);if(!r)continue;
+      const d=JSON.parse(r);
+      if(d&&d.expenses&&d.expenses.length>50){
+        // Merge any seed txns missing from saved state, and fix stmt dates/holder/behalf
+        const ids=new Set(d.expenses.map(e=>e.id));
+        SEED.forEach(s=>{
+          if(!ids.has(s.id)){d.expenses.push(Object.assign({},s));}
+          else{const e=d.expenses.find(x=>x.id===s.id);if(e){e.sd=s.sd;e.h=s.h;e.b=s.b;}}
+        });
+        // Deduplicate by id — keeps first occurrence
+        const seen=new Set();
+        d.expenses=d.expenses.filter(e=>{if(seen.has(e.id))return false;seen.add(e.id);return true;});
+        if(!d.settled)d.settled={};
+        if(!d.assets||!d.assets.length)d.assets=[{id:'a1',name:'HDB flat (Ubi Ave 1)',value:348530.13}];
+        if(!d.liabilities||!d.liabilities.length)d.liabilities=[{id:'l1',name:'HDB loan',value:348530.13},{id:'l2',name:'Car loan',value:39600}];
+        if(!d.cpf)d.cpf=Object.assign({},DCPF);
+        if(!d.income)d.income={};
+        Object.entries(DINC).forEach(([m,v])=>{if(!d.income[m])d.income[m]=Object.assign({},v);});
+        d.v=SCHEMA;
+        return d;
+      }
+    }catch(e){}
+  }
+  // No valid saved state — build from seed
+  return buildFresh();
 }
 
-function changeMonth(dir){
-  const[y,m]=currentMonth.split('-').map(Number);
-  const d=new Date(y,m-1+dir,1);
-  currentMonth=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-  if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
-  renderCashFlow();
-  const cp=document.querySelector('.panel.active');
-  if(cp&&cp.id==='panel-categories')renderCategories();
+let S=initState(),cur='2026-03';
+save();
+
+function save(){try{localStorage.setItem('sg_finance_v1',JSON.stringify(S));}catch(e){}}
+function mexp(){return S.expenses.filter(e=>em(e)===cur);}
+function calcSettle(exps){
+  const wc=exps.filter(e=>gh(e)==='w'),hc=exps.filter(e=>gh(e)==='h');
+  const wh=wc.filter(e=>e.who==='him'&&ga(e)>0),wj=wc.filter(e=>e.who==='joint'&&ga(e)>0);
+  const hj=hc.filter(e=>e.who==='joint'&&ga(e)>0),hm=hc.filter(e=>e.who==='me'&&ga(e)>0);
+  const sum=a=>a.reduce((s,e)=>s+ga(e),0);
+  const how=sum(wh)+sum(wj)*.5,woh=sum(hj)*.5+sum(hm);
+  return{wh,wh_a:sum(wh),wj,wj_a:sum(wj)*.5,how,hj,hj_a:sum(hj)*.5,hm,hm_a:sum(hm),woh,net:how-woh,
+    sis:exps.reduce((s,e)=>s+(parseFloat(e.ss)||0),0),sisx:exps.filter(e=>parseFloat(e.ss)>0)};
 }
 
-function updateIncome(){
-  if(!state.income[currentMonth])state.income[currentMonth]={};
-  state.income[currentMonth].me=parseFloat(document.getElementById('myIncome').value)||0;
-  state.income[currentMonth].him=parseFloat(document.getElementById('hisIncome').value)||0;
-  state.income[currentMonth].other=parseFloat(document.getElementById('otherIncome').value)||0;
-  saveState();renderCashFlow();
+function go(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.pnl').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');document.getElementById(tab).classList.add('on');
+  if(tab==='cf')rCF();else if(tab==='cat')rCat();else if(tab==='led')rLed();else if(tab==='set')rSet();else rNW();
+}
+function chMo(d){
+  const[y,m]=cur.split('-').map(Number);const dt=new Date(y,m-1+d,1);
+  cur=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  if(!S.income[cur])S.income[cur]={me:9600,him:5531,other:0};
+  const ap=document.querySelector('.pnl.on');
+  if(ap){if(ap.id==='cf')rCF();else if(ap.id==='cat')rCat();else if(ap.id==='set')rSet();}
 }
 
-function renderCashFlow(){
-  const[y,m]=currentMonth.split('-');
-  document.getElementById('headerMonth').textContent=new Date(+y,+m-1,1).toLocaleDateString('en-SG',{month:'long',year:'numeric'});
-  const inc=state.income[currentMonth]||{};
-  document.getElementById('myIncome').value=inc.me||'';
-  document.getElementById('hisIncome').value=inc.him||'';
-  document.getElementById('otherIncome').value=inc.other||'';
-  const totalInc=(inc.me||0)+(inc.him||0)+(inc.other||0);
-  const all=getMonthExp();
-  const realExp=all.filter(e=>e.behalf!=='yes').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-  const bAmt=all.filter(e=>e.behalf==='yes').reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-  const sav=totalInc-realExp;
-  const rate=totalInc>0?Math.round((sav/totalInc)*100):null;
-  document.getElementById('cfIncome').textContent=fmt(totalInc);
-  document.getElementById('cfExpenses').textContent=fmtD(realExp);
-  document.getElementById('cfOnBehalf').textContent=fmtD(bAmt);
-  const se=document.getElementById('cfSavings');
-  se.textContent=(sav<0?'-':'')+fmtD(Math.abs(sav));
-  se.className='stat-value '+(sav<0?'neg':'pos');
-  document.getElementById('cfRate').textContent=rate!==null?rate+'% savings rate':'';
+function rCF(){
+  const inc=S.income[cur]||{me:9600,him:5531,other:0};
+  const ti=(inc.me||0)+(inc.him||0)+(inc.other||0);
+  const ex=mexp();
+  const oe=ex.filter(isO).reduce((s,e)=>s+ga(e)-(parseFloat(e.ss)||0),0);
+  const ob=ex.filter(e=>!isO(e)).reduce((s,e)=>s+ga(e),0);
+  const sv=ti-oe,rt=ti>0?Math.round(sv/ti*100):null;
+  document.getElementById('cf').innerHTML=`
+  <div class="hrow"><div><div class="htitle">Cash flow · stmt date</div><div class="hval">${ml(cur)}</div></div>
+  <div class="mnav"><button class="mbtn" onclick="chMo(-1)">←</button><button class="mbtn" onclick="chMo(1)">→</button></div></div>
+  <div class="g4">
+    <div class="box"><div class="lbl">Combined income</div><div class="val pos">${fd(ti,0)}</div></div>
+    <div class="box"><div class="lbl">Our expenses</div><div class="val">${fd(oe)}</div><div class="sub">excl. on-behalf · net sis share</div></div>
+    <div class="box"><div class="lbl">On behalf</div><div class="val" style="color:#888">${fd(ob)}</div></div>
+    <div class="box"><div class="lbl">Savings</div><div class="val ${sv<0?'neg':'pos'}">${sv<0?'−':''}${fd(Math.abs(sv))}</div><div class="sub">${rt!==null?rt+'% rate':''}</div></div>
+  </div>
+  <div class="card"><div class="ctitle">Monthly income</div>
+  <div class="irow">
+    <div class="fld"><label>Your income</label><input type="number" id="ii_me" value="${inc.me||''}" oninput="updInc()" style="width:120px"></div>
+    <div class="fld"><label>Husband</label><input type="number" id="ii_him" value="${inc.him||''}" oninput="updInc()" style="width:120px"></div>
+    <div class="fld"><label>Other</label><input type="number" id="ii_oth" value="${inc.other||''}" oninput="updInc()" style="width:100px"></div>
+  </div></div>
+  <div class="lbl" style="margin-bottom:8px">Add manual expense</div>
+  <div class="card">
+    <div class="irow">
+      <div class="fld"><label>Description</label><input type="text" id="ad" placeholder="e.g. Ironing"></div>
+      <div class="fld"><label>Amount S$</label><input type="number" id="aa" placeholder="0.00" step="0.01"></div>
+      <div class="fld"><label>Txn date</label><input type="date" id="at" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="fld"><label>Stmt date</label><input type="date" id="as" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="fld"><label>Category</label><select id="ac">${CATS.map(c=>`<option value="${c.id}">${c.n}</option>`).join('')}</select></div>
+      <div class="fld"><label>Holder</label><select id="ah"><option value="w">Wife</option><option value="h">Husband</option></select></div>
+      <div class="fld"><label>Bank</label><select id="abk"><option>UOB</option><option>Amex</option><option>Citi</option><option>DBS</option><option>Cash</option><option>Other</option></select></div>
+      <div class="fld"><label>Who bears</label><select id="aw"><option value="joint">Joint</option><option value="me">Wife</option><option value="him">Him</option></select></div>
+      <div class="fld"><label>On behalf</label><select id="ab"><option value="no">— Ours</option><option value="mum">Mum</option><option value="siblings">Siblings</option><option value="other">Other</option></select></div>
+    </div>
+    <button class="btn" onclick="addExp()">+ Add</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:6px">
+    <button class="exbtn" onclick="expD()">⬇ Export data</button>
+    <div style="display:flex;gap:6px">
+      <button class="sbtn" style="border:1px solid #ddd" onclick="document.getElementById('imp').click()">↑ Import</button>
+      <input type="file" id="imp" accept=".json" style="display:none" onchange="impD(event)">
+      <button class="rbtn" onclick="rstD()">Reset</button>
+    </div>
+  </div>`;
+}
+function updInc(){
+  if(!S.income[cur])S.income[cur]={};
+  S.income[cur].me=parseFloat(document.getElementById('ii_me').value)||0;
+  S.income[cur].him=parseFloat(document.getElementById('ii_him').value)||0;
+  S.income[cur].other=parseFloat(document.getElementById('ii_oth').value)||0;
+  save();rCF();
+}
+function addExp(){
+  const desc=document.getElementById('ad').value.trim(),a=parseFloat(document.getElementById('aa').value);
+  if(!desc||isNaN(a)){alert('Enter description and amount.');return;}
+  const td=document.getElementById('at').value,sd=document.getElementById('as').value||td;
+  S.expenses.push({id:Date.now().toString(),desc,amt:a,td,sd,cat:document.getElementById('ac').value,who:document.getElementById('aw').value,h:document.getElementById('ah').value,b:document.getElementById('ab').value,bk:document.getElementById('abk').value,ss:0});
+  cur=sd.slice(0,7);if(!S.income[cur])S.income[cur]={me:9600,him:5531,other:0};
+  save();rCF();
+}
+function expD(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sg-finance-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+function impD(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(!d.expenses)throw 0;const ids=new Set(d.expenses.map(x=>x.id));SEED.forEach(s=>{if(!ids.has(s.id))d.expenses.push(Object.assign({},s));else{const x=d.expenses.find(y=>y.id===s.id);if(x){x.sd=s.sd;x.h=s.h;x.b=s.b;}}});S=d;save();rCF();alert('Imported '+d.expenses.length+' txns.');}catch(x){alert('Invalid file.');}};r.readAsText(f);ev.target.value='';}
+function rstD(){if(!confirm('Reset to seed data?'))return;S=buildFresh();save();rCF();}
+
+function rCat(){
+  const exps=mexp().filter(isO);
+  const tot=exps.reduce((s,e)=>s+ga(e)-(parseFloat(e.ss)||0),0);
+  const by={};exps.forEach(e=>{const n=ga(e)-(parseFloat(e.ss)||0);by[e.cat]=(by[e.cat]||0)+n;});
+  const srt=CATS.map(c=>({...c,a:by[c.id]||0})).filter(c=>c.a!==0).sort((a,b)=>b.a-a.a);
+  const mx=srt.length?Math.max(...srt.map(c=>Math.abs(c.a))):1;
+  document.getElementById('cat').innerHTML=`
+  <div class="hrow"><div><div class="htitle">Spending · excl. on-behalf</div><div class="hval">${ml(cur)}</div></div>
+  <div class="mnav"><button class="mbtn" onclick="chMo(-1)">←</button><button class="mbtn" onclick="chMo(1)">→</button></div></div>
+  <div class="g4">${srt.slice(0,4).map(c=>`<div class="box"><div class="lbl">${c.n}</div><div class="val ${c.a<0?'pos':''}">${c.a<0?'−':''}${fd(Math.abs(c.a))}</div><div class="sub">${Math.abs(tot)>0?Math.round(Math.abs(c.a)/Math.abs(tot)*100):0}%</div></div>`).join('')}</div>
+  <div class="card">${srt.length?srt.map(c=>`<div class="cbar"><div class="cbl">${c.n}</div><div class="cbt"><div class="cbf" style="width:${Math.round(Math.abs(c.a)/mx*100)}%;background:${c.a<0?'#15803d':c.c}"></div></div><div class="cba">${c.a<0?'−':''}${fd(Math.abs(c.a))}</div><div class="cbp">${Math.abs(tot)>0?Math.round(Math.abs(c.a)/Math.abs(tot)*100):0}%</div></div>`).join(''):'<div class="empty">No expenses.</div>'}</div>`;
 }
 
-function renderCategories(){
-  const[y,m]=currentMonth.split('-');
-  const exps=getMonthExp().filter(e=>e.behalf!=='yes');
-  const total=exps.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-  const bycat={};exps.forEach(e=>{bycat[e.cat]=(bycat[e.cat]||0)+(parseFloat(e.amount)||0);});
-  const sorted=CATS.map(c=>({...c,amt:bycat[c.id]||0})).filter(c=>c.amt>0).sort((a,b)=>b.amt-a.amt);
-  document.getElementById('catTopStats').innerHTML=sorted.slice(0,4).map(c=>`
-    <div class="stat">
-      <div class="stat-label">${c.name}</div>
-      <div class="stat-value" style="font-size:15px">${fmtD(c.amt)}</div>
-      <div class="stat-sub">${total>0?Math.round((c.amt/total)*100):0}%</div>
-    </div>`).join('');
-  const max=sorted[0]?.amt||1;
-  document.getElementById('catBars').innerHTML=sorted.length?sorted.map(c=>`
-    <div class="cat-bar-wrap">
-      <div class="cat-bar-top"><span class="cat-bar-name">${c.name}</span><span class="cat-bar-amt">${fmtD(c.amt)} · ${total>0?Math.round((c.amt/total)*100):0}%</span></div>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${Math.round((c.amt/max)*100)}%;background:${c.color}"></div></div>
-    </div>`).join(''):'<p style="color:var(--text2);text-align:center;padding:20px">No expenses this month.</p>';
+let LF={mo:'2026-03',h:'',bk:'',w:'',c:'',b:'',s:''};
+function rLed(){
+  const months=[...new Set(S.expenses.map(e=>em(e)).filter(Boolean))].sort().reverse();
+  const banks=[...new Set(S.expenses.map(e=>e.bk||'').filter(Boolean))].sort();
+  document.getElementById('led').innerHTML=`
+  <div class="hrow"><div><div class="htitle">Transaction ledger</div><div class="hval" id="lc">—</div></div><div id="lt" style="font-size:13px;font-weight:600"></div></div>
+  <div class="frow">
+    <label>Month</label><select class="fsel" onchange="LF.mo=this.value;rLR()"><option value="">All</option>${months.map(m=>`<option value="${m}"${m===LF.mo?' selected':''}>${ml(m)}</option>`).join('')}</select>
+    <label>Holder</label><select class="fsel" onchange="LF.h=this.value;rLR()"><option value="">All</option><option value="w"${LF.h==='w'?' selected':''}>Wife</option><option value="h"${LF.h==='h'?' selected':''}>Husband</option></select>
+    <label>Bank</label><select class="fsel" onchange="LF.bk=this.value;rLR()"><option value="">All</option>${banks.map(b=>`<option value="${b}"${LF.bk===b?' selected':''}>${b}</option>`).join('')}</select>
+    <label>Who</label><select class="fsel" onchange="LF.w=this.value;rLR()"><option value="">All</option><option value="me"${LF.w==='me'?' selected':''}>Wife</option><option value="him"${LF.w==='him'?' selected':''}>Him</option><option value="joint"${LF.w==='joint'?' selected':''}>Joint</option></select>
+    <label>Cat</label><select class="fsel" onchange="LF.c=this.value;rLR()"><option value="">All</option>${CATS.map(c=>`<option value="${c.id}"${LF.c===c.id?' selected':''}>${c.n}</option>`).join('')}</select>
+    <label>Behalf</label><select class="fsel" onchange="LF.b=this.value;rLR()"><option value="">All</option><option value="no"${LF.b==='no'?' selected':''}>Ours</option><option value="mum"${LF.b==='mum'?' selected':''}>Mum</option><option value="siblings"${LF.b==='siblings'?' selected':''}>Siblings</option><option value="other"${LF.b==='other'?' selected':''}>Other</option></select>
+    <input class="fsel" type="text" placeholder="search..." value="${LF.s}" oninput="LF.s=this.value;rLR()" style="width:80px">
+  </div>
+  <div style="overflow-x:auto"><div class="lbox" style="min-width:1010px">
+    <div class="lhdr lcols"><div>Stmt</div><div>Txn</div><div>Day</div><div>Description</div><div>Bank</div><div>Hdr</div><div>Category</div><div>Who</div><div>Behalf</div><div>Sis S$</div><div style="text-align:right">Amount</div><div></div></div>
+    <div id="lrows"></div>
+  </div></div>`;rLR();
 }
-
-function populateLedgerFilters(){
-  const months=[...new Set(state.expenses.map(e=>expMonth(e)).filter(Boolean))].sort().reverse();
-  document.getElementById('filterMonth').innerHTML='<option value="">All months</option>'+months.map(mo=>{
-    const[y,m]=mo.split('-');
-    return`<option value="${mo}"${mo===currentMonth?' selected':''}>${new Date(+y,+m-1,1).toLocaleDateString('en-SG',{month:'short',year:'numeric'})}</option>`;
-  }).join('');
-  document.getElementById('filterCat').innerHTML='<option value="">All cats</option>'+CATS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-}
-
-function updateWho(id,val){const e=state.expenses.find(x=>x.id===id);if(!e)return;e.who=val;saveState();renderCashFlow();}
-function updateBehalf(id,val){const e=state.expenses.find(x=>x.id===id);if(!e)return;e.behalf=val;saveState();renderCashFlow();renderLedger();}
-
-function renderLedger(){
-  const fM=document.getElementById('filterMonth').value;
-  const fW=document.getElementById('filterWho').value;
-  const fC=document.getElementById('filterCat').value;
-  const fB=document.getElementById('filterBehalf').value;
-  const fS=(document.getElementById('filterSearch').value||'').toLowerCase();
-  const exps=state.expenses.filter(e=>{
-    if(fM&&expMonth(e)!==fM)return false;
-    if(fW&&e.who!==fW)return false;
-    if(fC&&e.cat!==fC)return false;
-    if(fB&&e.behalf!==fB)return false;
-    if(fS&&!(e.desc||'').toLowerCase().includes(fS))return false;
+function rLR(){
+  const exps=S.expenses.filter(e=>{
+    if(LF.mo&&em(e)!==LF.mo)return false;
+    if(LF.h&&gh(e)!==LF.h)return false;
+    if(LF.bk&&(e.bk||'')!==LF.bk)return false;
+    if(LF.w&&e.who!==LF.w)return false;
+    if(LF.c&&e.cat!==LF.c)return false;
+    if(LF.b==='no'&&!isO(e))return false;
+    if(LF.b&&LF.b!=='no'&&e.b!==LF.b)return false;
+    if(LF.s&&!(e.desc||'').toLowerCase().includes(LF.s.toLowerCase()))return false;
     return true;
-  }).sort((a,b)=>(b.txnDate||'').localeCompare(a.txnDate||''));
-  const total=exps.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-  document.getElementById('ledgerCount').textContent=exps.length+' transaction'+(exps.length!==1?'s':'');
-  document.getElementById('ledgerTotal').textContent=fmtD(total);
-  const list=document.getElementById('ledgerList');
-  if(!exps.length){list.innerHTML='<p style="color:var(--text2);text-align:center;padding:30px">No transactions match.</p>';return;}
-  const c=catById;
-  list.innerHTML=exps.map(e=>{
-    const cat=c(e.cat);
-    const day=dayName(e.txnDate);
-    const dow=getDOW(e.txnDate);
-    const dayCls=dow===0?'day-sun':dow===3?'day-wed':'';
-    const isBehalf=e.behalf==='yes';
-    const isCash=e.payment==='cash';
-    const whoCls=e.who==='me'?'who-me':e.who==='him'?'who-him':'who-joint';
-    const whoLabel=e.who==='me'?'Mine':e.who==='him'?'Husband':'Joint';
-    return`<div class="ledger-item${isBehalf?' on-behalf':''}">
-      <div class="ledger-row1">
-        <div class="ledger-desc">${e.desc}</div>
-        <div class="ledger-amount" style="${isBehalf?'color:var(--text2)':''}">${fmtD(parseFloat(e.amount)||0)}</div>
-      </div>
-      <div class="ledger-row2">
-        <span class="pill" style="background:${cat.color}22;color:${cat.color}">${cat.name}</span>
-        <span class="pill ${whoCls}">${whoLabel}</span>
-        ${isBehalf?'<span class="pill behalf-pill">on behalf</span>':''}
-        ${isCash?'<span class="pill cash-pill">cash</span>':''}
-        <span class="ledger-meta">Txn: ${fmtDate(e.txnDate)} <span class="${dayCls}">${day}</span></span>
-        <span class="ledger-meta">· Stmt: ${fmtDate(e.stmtDate)}</span>
-        ${e.bank?`<span class="ledger-meta">· ${e.bank}</span>`:''}
-        ${e.cardholder?`<span class="ledger-meta">· ${e.cardholder}</span>`:''}
-      </div>
-      <div class="ledger-row3">
-        <select class="inline-sel" onchange="updateWho('${e.id}',this.value)">
-          <option value="joint"${e.who==='joint'?' selected':''}>Joint</option>
-          <option value="me"${e.who==='me'?' selected':''}>Mine</option>
-          <option value="him"${e.who==='him'?' selected':''}>Husband</option>
-        </select>
-        <select class="inline-sel" onchange="updateBehalf('${e.id}',this.value)">
-          <option value="no"${e.behalf!=='yes'?' selected':''}>Not on behalf</option>
-          <option value="yes"${e.behalf==='yes'?' selected':''}>On behalf</option>
-        </select>
-        <button class="del-btn" onclick="deleteExpense('${e.id}')">Delete</button>
-      </div>
+  }).sort((a,b)=>(b.td||'').localeCompare(a.td||''));
+  const tot=exps.reduce((s,e)=>s+ga(e),0);
+  const lc=document.getElementById('lc'),lt=document.getElementById('lt');
+  if(lc)lc.textContent=exps.length+' txns';
+  if(lt)lt.textContent=fd(tot);
+  const rows=document.getElementById('lrows');
+  if(!rows)return;
+  if(!exps.length){rows.innerHTML='<div class="empty">No transactions match.</div>';return;}
+  rows.innerHTML=exps.map(e=>{
+    const c=gc(e.cat),d=gdow(e.td);
+    const ds=d===0?'color:#c0392b;font-weight:600':d===3?'color:#1a7a4a;font-weight:600':'color:#888';
+    const no=!isO(e),ss=parseFloat(e.ss)||0,isH=gh(e)==='h',cr=isCr(e);
+    return`<div class="lrow lcols${no?' ob':''}${cr?' cr':''}">
+      <div style="color:#888">${fdt(e.sd)}</div>
+      <div style="color:#888">${fdt(e.td)}</div>
+      <div style="${ds}">${gdn(e.td)}</div>
+      <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.desc}${e.bk==='Cash'?' <span class="pill cpill">cash</span>':''}${cr?'<span class="pill crpill">credit</span>':''}${ss>0?'<span style="font-size:9px;padding:1px 4px;border-radius:3px;background:#ede9fe;color:#6d28d9;margin-left:3px">sis</span>':''}</div>
+      <div style="color:#888;font-size:10px">${e.bk||'—'}</div>
+      <div style="color:#888;font-size:10px">${isH?'<span style="font-size:9px;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px">H</span>':'W'}</div>
+      <div><span class="pill" style="background:${c.c}22;color:${c.c}">${c.n}</span></div>
+      <div><select class="isel" style="max-width:62px" onchange="upW('${e.id}',this.value)"><option value="joint"${e.who==='joint'?' selected':''}>Joint</option><option value="me"${e.who==='me'?' selected':''}>Wife</option><option value="him"${e.who==='him'?' selected':''}>Him</option></select></div>
+      <div><select class="isel" style="max-width:75px;${no?'color:#92400e':''}" onchange="upB('${e.id}',this.value)"><option value="no"${(e.b||'no')==='no'?' selected':''}>— Ours</option><option value="mum"${e.b==='mum'?' selected':''}>Mum</option><option value="siblings"${e.b==='siblings'?' selected':''}>Siblings</option><option value="other"${e.b==='other'?' selected':''}>Other</option></select></div>
+      <div><input class="iinp" type="number" placeholder="—" min="0" step="0.01" value="${ss||''}" onchange="upSS('${e.id}',this.value)"></div>
+      <div class="ar" style="color:${cr?'#15803d':(no?'#aaa':'')}">${cr?'−':''}${fd(Math.abs(ga(e)))}</div>
+      <div><button class="delbtn" onclick="delE('${e.id}')">×</button></div>
     </div>`;
   }).join('');
 }
+function upW(id,v){const e=S.expenses.find(x=>x.id===id);if(e){e.who=v;save();}rLR();}
+function upB(id,v){const e=S.expenses.find(x=>x.id===id);if(e){e.b=v;save();}rLR();}
+function upSS(id,v){const e=S.expenses.find(x=>x.id===id);if(e){e.ss=parseFloat(v)||0;save();}}
+function delE(id){if(!confirm('Delete?'))return;S.expenses=S.expenses.filter(e=>e.id!==id);save();rLR();}
 
-function addExpense(){
-  const desc=document.getElementById('expDesc').value.trim();
-  const amount=parseFloat(document.getElementById('expAmount').value);
-  const txnDate=document.getElementById('expDate').value||new Date().toISOString().slice(0,10);
-  const stmtDate=document.getElementById('expStmtDate').value||txnDate;
-  const cat=document.getElementById('expCat').value;
-  let who=document.getElementById('expWho').value;
-  const payment=document.getElementById('expPayment').value;
-  let behalf=document.getElementById('expBehalf').value;
-  if(!desc||isNaN(amount)||amount<=0){alert('Please enter a description and amount.');return;}
-  const isSG=!isChinaTrip(desc);
-  if(cat==='food'&&isSG&&isWed(txnDate))who='me';
-  if(cat==='transport'&&isWed(txnDate))who='me';
-  if(cat==='food'&&isSG&&isSun(txnDate))behalf='yes';
-  state.expenses.push({id:Date.now().toString(),desc,amount,txnDate,stmtDate,cat,who,behalf,bank:payment==='cash'?'Cash':'Manual',cardholder:'',payment});
-  saveState();
-  currentMonth=stmtDate.slice(0,7);
-  if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};
-  document.getElementById('expDesc').value='';
-  document.getElementById('expAmount').value='';
-  renderCashFlow();
-  alert('Expense added!');
+function rSet(){
+  const exps=mexp(),s=calcSettle(exps),settled=S.settled[cur]===true;
+  const netAbs=Math.abs(s.net),nc=s.net>=0?'#1a7a4a':'#c0392b';
+  const months=[...new Set(S.expenses.map(e=>em(e)).filter(Boolean))].sort().reverse();
+  let msg=`Hi, here's our settlement for ${ml(cur)} 😊\n\n`;
+  if(s.net>=0){msg+=`*You owe me: ${fd(s.net)}*\n\nMy card:\n`;if(s.wh.length)msg+=`  Your expenses: ${fd(s.wh_a)}\n`;if(s.wj.length)msg+=`  Joint ×50%: ${fd(s.wj_a)}\n`;msg+=`  Subtotal: ${fd(s.how)}\n\nYour card (offset):\n`;if(s.hj.length)msg+=`  Joint ×50%: ${fd(s.hj_a)}\n`;if(s.hm.length)msg+=`  You paid for me: ${fd(s.hm_a)}\n`;msg+=`  Subtotal: ${fd(s.woh)}`;}
+  else{msg+=`*I owe you: ${fd(netAbs)}*\n\nYour card:\n`;if(s.hj.length)msg+=`  Joint ×50%: ${fd(s.hj_a)}\n`;if(s.hm.length)msg+=`  You paid for me: ${fd(s.hm_a)}\n`;msg+=`  Subtotal: ${fd(s.woh)}\n\nMy card (offset):\n`;if(s.wh.length)msg+=`  Your expenses: ${fd(s.wh_a)}\n`;if(s.wj.length)msg+=`  Joint ×50%: ${fd(s.wj_a)}\n`;msg+=`  Subtotal: ${fd(s.how)}`;}
+  if(s.sis>0)msg+=`\n\n— Claim from sister —\n${s.sisx.map(e=>`• ${e.desc}: ${fd(parseFloat(e.ss))}`).join('\n')}\nTotal: ${fd(s.sis)}`;
+  msg+='\n\nPlease PayNow when you can 🙏';
+  const clHTML=['mum','siblings','other'].map(ct=>{
+    const items=exps.filter(e=>e.b===ct);if(!items.length)return'';
+    const tot=items.reduce((s,e)=>s+ga(e),0);
+    const lbl={mum:'Mum',siblings:'Siblings',other:'Other'}[ct];
+    const wm=encodeURIComponent(`Hi, paid ${fd(tot)} on your behalf for ${ml(cur)}:\n\n${items.map(e=>`• ${e.desc} — ${fd(ga(e))}`).join('\n')}\n\nPlease transfer, thanks 🙏`);
+    return`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><b>${lbl}</b> owes you <b style="margin-left:6px">${fd(tot)}</b></div><button class="wa" onclick="window.open('https://wa.me/?text=${wm}','_blank')">📲 WA</button></div>${items.map(e=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:11px"><div>${e.desc}<div style="font-size:10px;color:#888">${fdt(e.td)}</div></div><div>${fd(ga(e))}</div></div>`).join('')}</div>`;
+  }).join('');
+  const histHTML=months.map(mo=>{
+    const ms=calcSettle(S.expenses.filter(e=>em(e)===mo));
+    const n=ms.net,stl=S.settled[mo]===true;
+    return`<div class="hrow2"><div style="font-size:12px;flex:1">${ml(mo)}</div><div style="font-size:11px">${fd(ms.how)}</div><div style="font-size:11px">${fd(ms.woh)}</div><div style="font-size:11px;font-weight:600;color:${n>=0?'#1a7a4a':'#c0392b'}">${n>=0?'him ':'you '}${fd(Math.abs(n))}</div><div>${stl?'<span class="ok">✓</span>':'<span class="pend">Pending</span>'}</div></div>`;
+  }).join('');
+  document.getElementById('set').innerHTML=`
+  <div class="hrow"><div><div class="htitle">Settlement · stmt date</div><div class="hval">${ml(cur)}</div></div>
+  <div class="mnav"><button class="mbtn" onclick="chMo(-1)">←</button><button class="mbtn" onclick="chMo(1)">→</button></div></div>
+  <div class="leg"><b>Holder + Who drives settlement. Credits & sis share do NOT affect settlement.</b><br>Wife card · Him → 100% · Wife card · Joint → 50%<br>His card · Joint → you pay 50% · His card · Wife → you pay 100%</div>
+  <div class="card"><div class="ctitle">Wife's card — He owes you <b>${fd(s.how)}</b></div>
+    ${s.wh.length?`<div class="sline"><div>Who=Him × 100% (${s.wh.length} items)</div><div>${fd(s.wh_a)}</div></div>`:''}
+    ${s.wj.length?`<div class="sline"><div>Who=Joint × 50% (${s.wj.length} items · total ${fd(s.wj.reduce((a,e)=>a+ga(e),0))})</div><div>${fd(s.wj_a)}</div></div>`:''}
+    ${!s.wh.length&&!s.wj.length?'<div class="empty" style="padding:8px 0">No transactions on wife\'s card.</div>':''}
+  </div>
+  <div class="card"><div class="ctitle">Husband's card — You owe him <b style="color:#c0392b">${fd(s.woh)}</b></div>
+    ${s.hj.length?`<div class="sline"><div>Who=Joint × 50% (${s.hj.length} items · total ${fd(s.hj.reduce((a,e)=>a+ga(e),0))})</div><div>${fd(s.hj_a)}</div></div>`:''}
+    ${s.hm.length?`<div class="sline"><div>Who=Wife × 100%</div><div>${fd(s.hm_a)}</div></div>`:''}
+    ${!s.hj.length&&!s.hm.length?'<div class="empty" style="padding:8px 0">None.</div>':''}
+  </div>
+  <div class="card" style="background:#f5f5f5"><div class="ctitle">Net settlement ${settled?'<span class="ok">✓ Settled</span>':'<span class="pend">Pending</span>'}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>${s.net>=0?'Husband pays you':'You pay husband'}</div>
+      <div style="font-size:26px;font-weight:700;color:${nc}">${fd(netAbs)}</div>
+    </div>
+    <div style="font-size:10px;color:#888;margin-top:4px">He owes you ${fd(s.how)} − you owe him ${fd(s.woh)} = net ${fd(netAbs)}</div>
+  </div>
+  <div class="lbl" style="margin-bottom:8px">WhatsApp message</div>
+  <div class="wabox" id="waMsg">${msg}</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    <button class="wa" onclick="window.open('https://wa.me/?text='+encodeURIComponent(document.getElementById('waMsg').textContent),'_blank')">📲 Send</button>
+    <button class="btn" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('waMsg').textContent).then(()=>alert('Copied!'))">Copy</button>
+    <button class="sbtn" style="border:1px solid ${settled?'#fca5a5':'#86efac'};background:${settled?'#fee2e2':'#dcfce7'};color:${settled?'#c0392b':'#15803d'}" onclick="togS()">${settled?'Mark unsettled':'✓ Mark settled'}</button>
+  </div>
+  <div class="lbl" style="margin-bottom:8px">On-behalf claims</div>
+  ${clHTML||'<div style="font-size:11px;color:#888;margin-bottom:16px">No on-behalf claims this month.</div>'}
+  <div class="lbl" style="margin-top:16px;margin-bottom:8px">History</div>
+  <div class="lbox">
+    <div class="lhdr" style="grid-template-columns:1fr 90px 90px 100px 70px"><div>Month</div><div style="text-align:right">Wife card</div><div style="text-align:right">His card</div><div style="text-align:right">Net</div><div style="text-align:right">Status</div></div>
+    ${histHTML}
+  </div>`;
 }
+function togS(){S.settled[cur]=!S.settled[cur];save();rSet();}
 
-function deleteExpense(id){
-  if(!confirm('Delete this transaction?'))return;
-  state.expenses=state.expenses.filter(e=>e.id!==id);
-  saveState();renderCashFlow();renderLedger();
-}
-
-async function handleUpload(event,who){
-  const file=event.target.files[0];if(!file)return;
-  const status=document.getElementById(who==='me'?'statusMe':'statusHim');
-  status.className='upload-status processing';status.textContent='Reading file...';
-  try{
-    const prompt=`Extract all expense transactions from this credit card statement. Return ONLY a JSON array. Each: {"desc":"merchant","amount":positive number,"txnDate":"YYYY-MM-DD","stmtDate":"YYYY-MM-DD","cat":"food|groceries|transport|shopping|health|entertainment|insurance|travel|education|car|household|fees|other","bank":"bank name","cardholder":"name"}. China/overseas=travel. Supermarkets/Finest=groceries. CardUp HL Bank=car. CardUp insurance=insurance. Playfacto/tuition=education. SG dining=food. Skip payments/refunds. Today=${new Date().toISOString().slice(0,10)}.`;
-    let msgContent;
-    if(file.name.endsWith('.pdf')){
-      const buf=await file.arrayBuffer();const bytes=new Uint8Array(buf);
-      let bin='';bytes.forEach(b=>bin+=String.fromCharCode(b));
-      msgContent=[{type:'document',source:{type:'base64',media_type:'application/pdf',data:btoa(bin)}},{type:'text',text:prompt}];
-    }else{msgContent=prompt+'\n\n'+(await file.text()).slice(0,8000);}
-    status.textContent='Parsing with Claude...';
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:msgContent}]})});
-    const data=await res.json();
-    const tb=data.content.find(b=>b.type==='text');
-    const parsed=JSON.parse((tb?.text||'').replace(/```json|```/g,'').trim());
-    if(!Array.isArray(parsed)||!parsed.length)throw new Error('empty');
-    const today=new Date().toISOString().slice(0,10);
-    parsed.forEach(t=>{
-      const cat=t.cat||'other';const txnDate=t.txnDate||today;
-      const isSG=!isChinaTrip(t.desc||'');
-      let aWho=cat==='food'?'him':'joint';
-      let behalf='no';
-      if(cat==='food'&&isSG&&isSun(txnDate))behalf='yes';
-      if(cat==='food'&&isSG&&isWed(txnDate))aWho='me';
-      if(cat==='transport'&&isWed(txnDate))aWho='me';
-      state.expenses.push({id:Date.now().toString()+Math.random().toString(36).slice(2,4),desc:t.desc||'Unknown',amount:Math.abs(parseFloat(t.amount)||0),txnDate,stmtDate:t.stmtDate||today,cat,who:aWho,behalf,bank:t.bank||'',cardholder:t.cardholder||'',payment:'card'});
-    });
-    saveState();
-    const fs=parsed.find(t=>t.stmtDate)?.stmtDate;
-    if(fs){currentMonth=fs.slice(0,7);if(!state.income[currentMonth])state.income[currentMonth]={me:0,him:0,other:0};}
-    renderCashFlow();
-    status.className='upload-status done';status.textContent=`✓ Imported ${parsed.length} transactions`;
-  }catch(e){status.className='upload-status error';status.textContent='Failed. Try CSV or TXT format.';}
-  event.target.value='';
-}
-
-function cpfVal(id){return parseFloat(document.getElementById(id)?.value)||0;}
-function updateNW(){
-  state.cpf={myOA:cpfVal('myOA'),mySA:cpfVal('mySA'),myMA:cpfVal('myMA'),myCPFIS:cpfVal('myCPFIS'),hisOA:cpfVal('hisOA'),hisSA:cpfVal('hisSA'),hisMA:cpfVal('hisMA'),hisCPFIS:cpfVal('hisCPFIS')};
-  saveState();
-  document.getElementById('myCPFTotal').textContent=fmt((state.cpf.myOA||0)+(state.cpf.mySA||0)+(state.cpf.myMA||0)+(state.cpf.myCPFIS||0));
-  document.getElementById('hisCPFTotal').textContent=fmt((state.cpf.hisOA||0)+(state.cpf.hisSA||0)+(state.cpf.hisMA||0)+(state.cpf.hisCPFIS||0));
-  renderNetWorth();
-}
-function loadCPFInputs(){
-  ['myOA','mySA','myMA','myCPFIS','hisOA','hisSA','hisMA','hisCPFIS'].forEach(id=>{
-    const el=document.getElementById(id);if(el&&state.cpf[id]!==undefined)el.value=state.cpf[id];
-  });
-  document.getElementById('myCPFTotal').textContent=fmt((state.cpf.myOA||0)+(state.cpf.mySA||0)+(state.cpf.myMA||0)+(state.cpf.myCPFIS||0));
-  document.getElementById('hisCPFTotal').textContent=fmt((state.cpf.hisOA||0)+(state.cpf.hisSA||0)+(state.cpf.hisMA||0)+(state.cpf.hisCPFIS||0));
-}
-function renderNetWorth(){
-  document.getElementById('nwDate').textContent=new Date().toLocaleDateString('en-SG',{day:'numeric',month:'long',year:'numeric'});
-  const c=state.cpf;
+function rNW(){
+  const c=S.cpf||DCPF;
   const cpfT=(c.myOA||0)+(c.mySA||0)+(c.myMA||0)+(c.myCPFIS||0)+(c.hisOA||0)+(c.hisSA||0)+(c.hisMA||0)+(c.hisCPFIS||0);
-  const totalA=cpfT+state.assets.reduce((s,a)=>s+(parseFloat(a.value)||0),0);
-  const totalL=state.liabilities.reduce((s,l)=>s+(parseFloat(l.value)||0),0);
-  const nw=totalA-totalL;
-  document.getElementById('nwAssets').textContent=fmt(totalA);
-  document.getElementById('nwLiabilities').textContent=fmt(totalL);
-  const ne=document.getElementById('nwNet');ne.textContent=(nw<0?'-':'')+fmt(Math.abs(nw));ne.className='stat-value '+(nw<0?'neg':'pos');
-  document.getElementById('nwCoverage').textContent=totalL>0?Math.min(Math.round((totalA/totalL)*100),999)+'%':'—';
-  const bp=totalA>0?Math.max(0,Math.min(Math.round((nw/totalA)*100),100)):0;
-  const bar=document.getElementById('nwBar');bar.style.width=bp+'%';bar.style.background=nw<0?'var(--red)':'var(--green)';
-  renderAssets();renderLiabilities();
+  const tA=cpfT+(S.assets||[]).reduce((s,a)=>s+(parseFloat(a.value)||0),0);
+  const tL=(S.liabilities||[]).reduce((s,l)=>s+(parseFloat(l.value)||0),0);
+  const nw=tA-tL,bp=tA>0?Math.max(0,Math.min(Math.round(nw/tA*100),100)):0;
+  document.getElementById('nw').innerHTML=`
+  <div class="hrow"><div><div class="htitle">Net worth</div><div class="hval">${new Date().toLocaleDateString('en-SG',{day:'numeric',month:'long',year:'numeric'})}</div></div></div>
+  <div class="g4">
+    <div class="box"><div class="lbl">Total assets</div><div class="val pos">${f0(tA)}</div></div>
+    <div class="box"><div class="lbl">Liabilities</div><div class="val neg">${f0(tL)}</div></div>
+    <div class="box"><div class="lbl">Net worth</div><div class="val ${nw<0?'neg':'pos'}">${nw<0?'−':''}${f0(Math.abs(nw))}</div></div>
+    <div class="box"><div class="lbl">Coverage</div><div class="val">${tL>0?Math.min(Math.round(tA/tL*100),999)+'%':'—'}</div></div>
+  </div>
+  <div class="nwbar"><div class="nwfill" style="width:${bp}%;background:${nw<0?'#c0392b':'#1a7a4a'}"></div></div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card"><div class="ctitle">Your CPF — ${f0((c.myOA||0)+(c.mySA||0)+(c.myMA||0)+(c.myCPFIS||0))}</div>
+    <div class="cpfg">
+      <div class="cpff"><label>OA</label><input class="cpfi" type="number" value="${c.myOA||''}" oninput="uCPF('myOA',this.value)"><div class="cpfr">2.5%</div></div>
+      <div class="cpff"><label>SA</label><input class="cpfi" type="number" value="${c.mySA||''}" oninput="uCPF('mySA',this.value)"><div class="cpfr">4%</div></div>
+      <div class="cpff"><label>MA</label><input class="cpfi" type="number" value="${c.myMA||''}" oninput="uCPF('myMA',this.value)"><div class="cpfr">4%</div></div>
+      <div class="cpff"><label>CPFIS</label><input class="cpfi" type="number" value="${c.myCPFIS||''}" oninput="uCPF('myCPFIS',this.value)"></div>
+    </div></div>
+    <div class="card"><div class="ctitle">Husband's CPF — ${f0((c.hisOA||0)+(c.hisSA||0)+(c.hisMA||0)+(c.hisCPFIS||0))}</div>
+    <div class="cpfg">
+      <div class="cpff"><label>OA</label><input class="cpfi" type="number" value="${c.hisOA||''}" oninput="uCPF('hisOA',this.value)"><div class="cpfr">2.5%</div></div>
+      <div class="cpff"><label>SA</label><input class="cpfi" type="number" value="${c.hisSA||''}" oninput="uCPF('hisSA',this.value)"><div class="cpfr">4%</div></div>
+      <div class="cpff"><label>MA</label><input class="cpfi" type="number" value="${c.hisMA||''}" oninput="uCPF('hisMA',this.value)"><div class="cpfr">4%</div></div>
+      <div class="cpff"><label>CPFIS</label><input class="cpfi" type="number" value="${c.hisCPFIS||''}" oninput="uCPF('hisCPFIS',this.value)"></div>
+    </div></div>
+  </div>
+  <div class="lbl" style="margin-bottom:8px">Other assets</div>
+  <div class="lbox">
+    <div class="ahdr"><div>Asset</div><div style="text-align:right">Value S$</div><div></div></div>
+    ${(S.assets||[]).map(a=>`<div class="arow"><div>${a.name}</div><div class="ar">${f0(parseFloat(a.value)||0)}</div><div><button class="delbtn" onclick="dlA('${a.id}')">×</button></div></div>`).join('')||'<div class="empty">None.</div>'}
+  </div>
+  <div class="irow" style="margin-bottom:16px">
+    <div class="fld"><label>Name</label><input type="text" id="an" placeholder="e.g. SRS"></div>
+    <div class="fld"><label>Value S$</label><input type="number" id="av" placeholder="0"></div>
+    <button class="btn" onclick="adA()">+ Add</button>
+  </div>
+  <div class="lbl" style="margin-bottom:8px">Liabilities</div>
+  <div class="lbox">
+    <div class="lhdr3"><div>Liability</div><div style="text-align:right">Amount S$</div><div></div></div>
+    ${(S.liabilities||[]).map(l=>`<div class="lrow3"><div>${l.name}</div><div class="ar neg">${f0(parseFloat(l.value)||0)}</div><div><button class="delbtn" onclick="dlL('${l.id}')">×</button></div></div>`).join('')||'<div class="empty">None.</div>'}
+  </div>
+  <div class="irow">
+    <div class="fld"><label>Name</label><input type="text" id="ln" placeholder="e.g. HDB loan"></div>
+    <div class="fld"><label>Amount S$</label><input type="number" id="lv" placeholder="0"></div>
+    <button class="btn" onclick="adL()">+ Add</button>
+  </div>`;
 }
-function renderAssets(){
-  document.getElementById('assetList').innerHTML=state.assets.length
-    ?state.assets.map(a=>`<div class="list-row"><span class="list-name">${a.name}</span><div style="display:flex;gap:8px;align-items:center"><span class="list-amt">${fmt(parseFloat(a.value)||0)}</span><button class="del-btn" onclick="deleteAsset('${a.id}')">✕</button></div></div>`).join('')
-    :'<p style="color:var(--text2);font-size:12px;padding:8px 0">No assets added yet.</p>';}
-function renderLiabilities(){
-  document.getElementById('liabilityList').innerHTML=state.liabilities.length
-    ?state.liabilities.map(l=>`<div class="list-row"><span class="list-name">${l.name}</span><div style="display:flex;gap:8px;align-items:center"><span class="list-amt" style="color:var(--red)">${fmt(parseFloat(l.value)||0)}</span><button class="del-btn" onclick="deleteLiability('${l.id}')">✕</button></div></div>`).join('')
-    :'<p style="color:var(--text2);font-size:12px;padding:8px 0">No liabilities added yet.</p>';}
-function addAsset(){const n=document.getElementById('assetName').value.trim(),v=parseFloat(document.getElementById('assetValue').value);if(!n||isNaN(v))return;state.assets.push({id:Date.now().toString(),name:n,value:v});saveState();renderNetWorth();document.getElementById('assetName').value='';document.getElementById('assetValue').value='';}
-function deleteAsset(id){if(!confirm('Remove this asset?'))return;state.assets=state.assets.filter(a=>a.id!==id);saveState();renderNetWorth();}
-function addLiability(){const n=document.getElementById('liabilityName').value.trim(),v=parseFloat(document.getElementById('liabilityValue').value);if(!n||isNaN(v))return;state.liabilities.push({id:Date.now().toString(),name:n,value:v});saveState();renderNetWorth();document.getElementById('liabilityName').value='';document.getElementById('liabilityValue').value='';}
-function deleteLiability(id){if(!confirm('Remove this liability?'))return;state.liabilities=state.liabilities.filter(l=>l.id!==id);saveState();renderNetWorth();}
+function uCPF(k,v){if(!S.cpf)S.cpf=Object.assign({},DCPF);S.cpf[k]=parseFloat(v)||0;save();rNW();}
+function adA(){const n=document.getElementById('an').value.trim(),v=parseFloat(document.getElementById('av').value);if(!n||isNaN(v))return;S.assets.push({id:Date.now().toString(),name:n,value:v});save();rNW();}
+function dlA(id){S.assets=S.assets.filter(a=>a.id!==id);save();rNW();}
+function adL(){const n=document.getElementById('ln').value.trim(),v=parseFloat(document.getElementById('lv').value);if(!n||isNaN(v))return;S.liabilities.push({id:Date.now().toString(),name:n,value:v});save();rNW();}
+function dlL(id){S.liabilities=S.liabilities.filter(l=>l.id!==id);save();rNW();}
 
-// also need nwCoverage display
-document.getElementById('nwAssets').parentElement.parentElement.querySelector && (function(){
-  const grid=document.querySelector('#panel-networth .sg4');
-  if(grid&&grid.children.length<4){
-    const d=document.createElement('div');d.className='stat';
-    d.innerHTML='<div class="stat-label">Coverage</div><div class="stat-value" id="nwCoverage">—</div>';
-    grid.appendChild(d);
-  }
-})();
-
-document.getElementById('expCat').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-document.getElementById('expDate').value=new Date().toISOString().slice(0,10);
-document.getElementById('expStmtDate').value=new Date().toISOString().slice(0,10);
-renderCashFlow();
-loadCPFInputs();
-renderNetWorth();
+rCF();
 </script>
 </body>
 </html>
